@@ -46,8 +46,8 @@ def timeseries_plot(data):
 	# print data.ix[1,:]
 	# exit()
 	# ts = pd.Series(data.ix[1,:], index=datetimeList)
-	ts = pd.Series(data.ix[0,:], index=datetimeList)
-
+	ts = pd.DataFrame(data.ix[0:1,:], index=datetimeList)
+	plt.figure()
 	ts.plot()
 	plt.show()
 
