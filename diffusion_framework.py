@@ -25,7 +25,9 @@ datasource = './data/'
 
 def main():
 
-	dataMatrix, t = make_swiss_roll(n_samples=100, noise=0.05, random_state=None)
+	#For testing purposes of the framework, a swiss roll dataset is generated.
+	# dataMatrix, t = make_swiss_roll(n_samples = 4, noise = 0.05, random_state = None)
+	dataMatrix = np.random.rand(10,4)
 
 	# Calculate a matrix which returns pairwise distances 
 	# between two datapoints according to a metric
@@ -37,13 +39,25 @@ def main():
 	kernelMatrix, totalDist = kernel_matrix(distMatrix)
 
 	# Create probability transition matrix from kernel matrix and total dist.
-	probMatrix = markov_chain(kernelMatrix,totalDist)
+	probMatrix = markov_chain(kernelMatrix, totalDist)
 
-	#proof that probabilities sum to 1
-	# for p in probMatrix:
-	# 	print sum(p)
-	U, S, V = apply_svd(probMatrix)
-	print S
+	# Returns SVD decomposition, s is the vector of singular values
+	# U,V are expected to be square matrices
+	U, s, V = apply_svd(probMatrix)
+	
+	# print V
+
+	# Define the diffusion mapping which will be used to represent the data
+	# l parameter is the number of intrinsic dimensionalty of the data
+	# t is the parameter of  the forward steps propagating on Markov process
+
+	# l,t take a default value here until the algorithm is propely implemented.
+	# Their values is a matter of research
+	l = 3
+	steps = 1
+
+	diffusionMappings = diff_mapping(s, V, l, steps)
+	print diffusionMappings.shape
 
 
 def distance_matrix(dataMatrix):
@@ -90,11 +104,24 @@ def markov_chain(K, d):
 	return P
 
 def apply_svd(P):
-	# Apply SVD, return the 3 U, S, V matrices sorted by eigenvalue desc
+	# Apply SVD, return the 3 U, s, V matrices sorted by eigenvalue descending
 	return svd(P, full_matrices = True, compute_uv = True)
 
-def mapping():
+def diff_mapping(s, V , l , t):
+	diffMap = np.zeros((l, V.shape[0]))
+	print("Right singular vectors")
+	# "+1" starts from column 1 until column l+1
+	for i in range(l):
+		# print s[i+1]
+		# print (s[i+1]**t)*V[:,i+1]
+		diffMap[i,:] = (s[i+1]**t)*V[:,i+1]
+
+	return diffMap
+
+def diffusion_distance(dataMatrix, diffMapMatrix):
 	pass
+	
+	
 
 if __name__ == '__main__':
 	main()
