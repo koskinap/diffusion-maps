@@ -1,6 +1,8 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
+#Script 1 : Get summary statistics about each species of bacteria
+
 import os, math
 import string
 import openpyxl
@@ -33,50 +35,27 @@ def read_data():
 	# Read data, get names of the 6 sheets, for different types of bacteria
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
-	
+
+	writer = pd.ExcelWriter('./data/summary.xlsx')
+
 	for name in sheetNames:
 		worksheet = xlData.parse(name)
 		# Keep only the actual timeseries data, last 30 columns
 		tsData = worksheet.ix[:,-30:]
 		tsDataFrame = pd.DataFrame(tsData)
 
-		# Call a function which plot time-series data
-		# timeseries_plot(tsData)
-
-		# Print dimensions of spreadsheet
+			# Print dimensions of spreadsheet
 		print name
 		print worksheet.shape
 
-		# linegraph(tsDataFrame)
+		describe(tsData, name, writer)
+		
+	writer.save()
 
-def linegraph(dataFrame):
 
-	fig = plt.figure() 
-	gs = gridspec.GridSpec(dataFrame.shape[0], dataFrame.shape[1])
-	for i in xrange(dataFrame.shape[0]):
-		for j in xrange(dataFrame.shape[1]):
-			ax = plt.subplot(dataFrame[i+1,j+1])	
-			ax.set_ylabel('Foo') #Add y-axis label 'Foo' to graph 'ax' (xlabel for x-axis)
-			fig.add_subplot(ax) #add 'ax' to figure
-	
-	fig.show()
-	
-def scatterplot():
-	pass
-	
-def timeseries_plot(data):
-	datetimeList = data.columns.values.tolist()
-	for index, dt in enumerate(datetimeList):
-		datetimeList[index] = dt.strftime('%m/%d/%Y %H:%M')
-
-	# print data.ix[1,:]
-	# exit()
-	ts = pd.Series(data.ix[1,:], index=datetimeList)
-	# ts = pd.DataFrame(data.ix[0:1,:], index=datetimeList)
-	plt.figure()
-	ts.plot()
-	plt.show()
-
+def describe(data, bactName, writer):
+	ts = pd.DataFrame(data)
+	ts.describe(include = 'all').to_excel(writer, bactName)
 
 
 if __name__ == '__main__':
