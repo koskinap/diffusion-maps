@@ -1,6 +1,8 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
+# Script 0: Working directory to test new functions. 
+
 import os, math
 import string
 import openpyxl
@@ -36,9 +38,18 @@ def read_data():
 	
 	for name in sheetNames:
 		worksheet = xlData.parse(name)
+
+		columns = worksheet.columns
+		for col in columns:
+			if (type(col)is not datetime.datetime):
+				print col
+				print len(worksheet[col].unique())
+				# print worksheet.col.unique()
+
+
 		# Keep only the actual timeseries data, last 30 columns
 		tsData = worksheet.ix[:,-30:]
-		tsDataFrame = pd.DataFrame(tsData)
+		# tsDataFrame = pd.DataFrame(tsData)
 
 		# Call a function which plot time-series data
 		# timeseries_plot(tsData)
@@ -46,8 +57,15 @@ def read_data():
 		# Print dimensions of spreadsheet
 		print name
 		print worksheet.shape
+		break
 
 		# linegraph(tsDataFrame)
+
+		# tSNE multidimensional visualisation
+
+
+def tsneVis(data):
+	pass 
 
 def linegraph(dataFrame):
 

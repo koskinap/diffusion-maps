@@ -45,17 +45,20 @@ def main():
 
 		#minmaxscaler --> returns dataframe
 		minMaxScaledData = minMaxNormalisation(tsDataFrame)
+		
 		# sklearn_normalize --> returns ndarray
 		normalisedData = normalisation(tsData)
 		normalisedDataFrame = pd.DataFrame(normalisedData)
+		
 		#sklearn-standarize --> returns dataframe
-		standarizedData = standarization(tsDataFrame)
+		# standarizedData = standarization(tsDataFrame)
 		
 		# Create a boxplot per timestamp per bacteria
 		boxplot(tsData)
 		boxplot(minMaxScaledData)
 		boxplot(normalisedDataFrame)
-		boxplot(standarizedData)
+		# boxplot(standarizedData)
+		break
 
 
 def minMaxNormalisation(dataFrame):
