@@ -1,10 +1,12 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
+from __future__ import division
+
 import os, math
 from math import exp
+from math import sqrt
 import string
-# from libc.math import sqrt, exp
 
 import numpy as np
 from numpy.linalg import svd
@@ -44,7 +46,8 @@ def main():
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
 	U, s, V = apply_svd(probMatrix)
-	
+	# print ("Singular values")
+	# print s
 	# print V
 
 	# Define the diffusion mapping which will be used to represent the data
@@ -57,7 +60,8 @@ def main():
 	steps = 1
 
 	diffusionMappings = diff_mapping(s, V, l, steps)
-	print diffusionMappings.shape
+	# print diffusionMappings.shape
+
 
 
 def distance_matrix(dataMatrix):
@@ -69,7 +73,7 @@ def distance_matrix(dataMatrix):
 
 def kernel_matrix(dMatrix):
 	# Value of sigma is very important, and objective of research.Here default value.
-	sigma = 0.3
+	sigma = 5
 
 	# Define a kernel matrix
 
@@ -80,12 +84,13 @@ def kernel_matrix(dMatrix):
 	d = np.zeros(N)
 	K = np.zeros((N, N))
 
-	# Define Gaussian kernel : exp(-dMatrix(i,j)/(2*sigma**2))
+	# Define Gaussian kernel : exp(-(dMatrix[i, j]**2)/(2*(sigma**2)))
 	for i in range(N):
 		# Optimise here, exclude computation under diagonal
 		for j in range(N):
-			K[i, j] = exp(-(dMatrix[i, j]**2)/(2*sigma**2))
-			d[i] += K[i,j]
+			K[i, j] = exp(-(dMatrix[i, j]**2)/(2*(sigma**2)))
+			# d[i] += K[i,j]
+		d[i] = sum(K[i,:])
 
 	return K, d
 
@@ -99,7 +104,14 @@ def markov_chain(K, d):
 	# distance to each node of the graph
 	for i in range(N):
 		for j in range(N):
-			P[i, j] = K[i, j]/d[i]
+			P[i, j] = K[i, j]/sqrt(d[i]**2)
+			# P[i, j] = K[i, j]/d[i]
+
+	# print ("Markov matrix")
+	# print P
+
+	print ("Probability sums")
+	print sum(P)
 
 	return P
 
@@ -109,7 +121,7 @@ def apply_svd(P):
 
 def diff_mapping(s, V , l , t):
 	diffMap = np.zeros((l, V.shape[0]))
-	print("Right singular vectors")
+	# print("Right singular vectors")
 	# "+1" starts from column 1 until column l+1
 	for i in range(l):
 		# print s[i+1]

@@ -60,6 +60,8 @@ def main():
 		# boxplot(standarizedData)
 		break
 
+def normalisation(data):
+	pass
 
 def minMaxNormalisation(dataFrame):
 	
