@@ -37,10 +37,14 @@ def main():
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
 
-	writer = pd.ExcelWriter('./data/sqrt_raw_data.xlsx')
+	# writer = pd.ExcelWriter('./data/sqrt_raw_data.xlsx')
 
 
 	for bactName in sheetNames:
+
+		writer = pd.ExcelWriter('./data/' + bactName + '_rawdata.xlsx')
+
+
 		worksheet = xlData.parse(bactName)
 		# Keep only the actual timeseries data, last 30 columns
 		tsData = worksheet.ix[:,-30:]
@@ -52,11 +56,12 @@ def main():
 
 		normData = sqrt_normalisation(tsData.as_matrix())
 		pd.DataFrame(normData).to_excel(writer, bactName)
-		break
 
+		
+		writer.save()
 
 		# break
-	writer.save()
+	# writer.save()
 
 
 
