@@ -38,7 +38,7 @@ def main():
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
 
-	writer = pd.ExcelWriter('./data/pcaData.xlsx')
+	# writer = pd.ExcelWriter('./data/pcaData.xlsx')
 
 	
 	for bactName in sheetNames:
@@ -56,16 +56,12 @@ def main():
 		# Perform PCA on Data
 		pca = PCA(n_components = 2, whiten = True)
 		XTransposedPca = pca.fit_transform(XTransposed)
-		# scatterplot(XTransposedPca)
+		scatterplot(XTransposedPca)
 		# print ('Print tsDataTransposedPca size ' + str(tsDataTransposedPca.shape))
 
-		# Perform sparse PCA on Data
-		# sparsePca = SparsePCA(n_components=2)
-		# XTransposedSparsePca = sparsePca.fit_transform(XTransposed)
-		# scatterplot(XTransposedSparsePca)
-		pd.DataFrame(XTransposedPca).to_excel(writer, bactName)
+	# 	pd.DataFrame(XTransposedPca).to_excel(writer, bactName)
 
-	writer.save()
+	# writer.save()
 
 
 
