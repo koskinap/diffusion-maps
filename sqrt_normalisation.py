@@ -1,7 +1,7 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Script 4: Normalise data in the same way it was normalised in previous research
+# Script 2: Normalise data in the same way it was normalised in previous research
 # and store it in an Excel file
 
 from __future__ import division

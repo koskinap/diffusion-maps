@@ -1,7 +1,8 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Script 0: Implement diffusion framework, returns diffusion mappings
+# Scipt 4: Visualise and test diffusion maps on Swiss Roll Dataset 
+# and compare withs other manifold learning techniques
 
 from __future__ import division
 
@@ -18,11 +19,14 @@ import pandas as pd
 from sklearn.utils.extmath import fast_dot
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.datasets import make_swiss_roll
+from sklearn import manifold, datasets
+
 
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
+from mpl_toolkits.mplot3d import Axes3D
 
 datasource = './data/'
 
@@ -30,8 +34,11 @@ datasource = './data/'
 def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
-	# dataMatrix, t = make_swiss_roll(n_samples = 4, noise = 0.05, random_state = None)
-	dataMatrix = np.random.rand(10,4)
+	dataMatrix, t = make_swiss_roll(n_samples = 1500, noise = 0.05, random_state = None)
+	# dataMatrix = np.random.rand(10,4)
+	dataMatrix2 = lle(dataMatrix, t)
+	# visualisation(dataMatrix, dataMatrix2, t)
+	# exit()
 
 	# Calculate a matrix which returns pairwise distances 
 	# between two datapoints according to a metric
@@ -41,26 +48,30 @@ def main():
 	# with values according to a kernel function
 	kernelMatrix, totalDist = kernel_matrix(distMatrix)
 
+
 	# Create probability transition matrix from kernel matrix and total dist.
 	probMatrix = markov_chain(kernelMatrix, totalDist)
 
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
-	U, s, V = apply_svd(probMatrix)
+	U, s, Vh = apply_svd(probMatrix)
 	# print ("Singular values")
 	# print s
+	# print V
 
 	# Define the diffusion mapping which will be used to represent the data
-	# n_components: parameter is the number of intrinsic dimensionality of the data
-	# steps: is the parameter of  the forward steps propagating on Markov process
+	# n_components parameter is the number of intrinsic dimensionality of the data
+	# steps is the parameter of  the forward steps propagating on Markov process
 
 	# n_components , steps take a default value here until the algorithm is propely implemented.
 	# Their values is a matter of research
 	n_components = 3
-	steps = 1
+	steps = 3
 
-	diffusionMappings = diff_mapping(s, V, n_components, steps)
+	diffusionMappings = diff_mapping(s, Vh, n_components, steps)
 	# print diffusionMappings.shape
+
+	visualisation(dataMatrix, diffusionMappings.transpose(), t)
 
 
 
@@ -100,8 +111,8 @@ def markov_chain(K, d):
 	# Initialise NxN probability transition matrix
 	P = np.zeros((N,N))
 
-	# Normalise distances by converting to probabilities by 
-	# dividing with total distance to each node of the graph
+	# Normalise probabilities by dividing with total
+	# distance to each node of the graph
 	for i in range(N):
 		for j in range(N):
 			# P[i, j] = (K[i, j])/sqrt(d[i]**2)
@@ -115,22 +126,49 @@ def markov_chain(K, d):
 	return P
 
 def apply_svd(P):
-	# Apply SVD, return the 3 U, s, Vh matrices sorted by singular value descending
+	# Apply SVD, return the 3 U, s, V matrices sorted by eigenvalue descending
 	return svd(P, full_matrices = True, compute_uv = True)
 
 
 def diff_mapping(s, V , n_components , steps):
 	diffMap = np.zeros((n_components, V.shape[0]))
-
+	# print("Right singular vectors")
 	# "+1" starts from column 1 until column l+1
 	for i in range(n_components):
+		# print s[i+1]
+		# print (s[i+1]**t)*V[:,i+1] #wrong singular vectors
 		diffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
 
 	return diffMap
 
 def diffusion_distance(dataMatrix, diffMapMatrix):
-	# May not be needed
 	pass
+
+
+def lle(X, color):
+	print("Computing LLE embedding")
+	X_r, err = manifold.locally_linear_embedding(X, n_neighbors=12, n_components=3)
+	print("Done. Reconstruction error: %g" % err)
+	return X_r
+
+	
+def visualisation(X, X_r, color):
+
+	fig = plt.figure()
+	try:
+	    ax = fig.add_subplot(211, projection='3d')
+	    ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap=plt.cm.Spectral)
+	except:
+	    ax = fig.add_subplot(211)
+	    ax.scatter(X[:, 0], X[:, 2], c=color, cmap=plt.cm.Spectral)
+
+	ax.set_title("Original data")
+	ax = fig.add_subplot(212)
+	ax.scatter(X_r[:, 0], X_r[:, 1], c=color, cmap=plt.cm.Spectral)
+	plt.axis('tight')
+	plt.xticks([]), plt.yticks([])
+	plt.title('Projected data')
+	plt.show()
 	
 
 if __name__ == '__main__':
