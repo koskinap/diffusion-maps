@@ -31,7 +31,8 @@ def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
 	# dataMatrix, t = make_swiss_roll(n_samples = 4, noise = 0.05, random_state = None)
-	dataMatrix = np.random.rand(10,4)
+	dataMatrix = np.random.rand(10,2)
+	# dataMatrix = np.ones((10, 5))
 
 	# Calculate a matrix which returns pairwise distances 
 	# between two datapoints according to a metric
@@ -40,9 +41,20 @@ def main():
 	# Choose a kernel function and create a kernel matrix
 	# with values according to a kernel function
 	kernelMatrix, totalDist = kernel_matrix(distMatrix)
+	# print("kernelMatrix")
+	# print kernelMatrix
+
+	# print("totalDist")
+	# print totalDist
+
+
 
 	# Create probability transition matrix from kernel matrix and total dist.
 	probMatrix = markov_chain(kernelMatrix, totalDist)
+
+	# print("probMatrix")
+	# print probMatrix
+	# exit()
 
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
@@ -56,8 +68,8 @@ def main():
 
 	# n_components , steps take a default value here until the algorithm is propely implemented.
 	# Their values is a matter of research
-	n_components = 3
-	steps = 1
+	n_components = 2
+	steps = 3
 
 	diffusionMappings = diff_mapping(s, V, n_components, steps)
 	# print diffusionMappings.shape
@@ -73,7 +85,7 @@ def distance_matrix(dataMatrix):
 
 def kernel_matrix(dMatrix):
 	# Value of sigma is very important, and objective of research.Here default value.
-	sigma = 2
+	sigma = 0.00000030
 
 	# Define a kernel matrix
 
@@ -89,7 +101,6 @@ def kernel_matrix(dMatrix):
 		# Optimise here, exclude computation under diagonal
 		for j in range(N):
 			K[i, j] = exp(-(dMatrix[i, j]**2)/(2*(sigma**2)))
-			# d[i] += K[i,j]
 		d[i] = sum(K[i,:])
 
 	return K, d
@@ -110,8 +121,9 @@ def markov_chain(K, d):
 	np.set_printoptions(precision=20)
 	
 	print ("Probability sums")
-	print sum(P)
+	print np.sum(P, axis = 1)
 
+	# P is not symmetric!!!
 	return P
 
 def apply_svd(P):

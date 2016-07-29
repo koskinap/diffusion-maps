@@ -10,7 +10,6 @@ import openpyxl
 import numpy as np
 import pandas as pd
 
-
 import matplotlib
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -20,17 +19,11 @@ from sklearn import preprocessing
 from sklearn.decomposition import PCA
 from sklearn.decomposition import SparsePCA
 
-
 import datetime
 
 matplotlib.style.use('ggplot')
 
-
-# datasource = './data/Science_ortholog_cluster_counts_all_taxa.xlsx'
-# datasource = './data/Prochlorococcus_rawdata.xlsx'
 datasource = './data/sqrtall.xlsx'
-
-
 
 def main():
 
@@ -57,7 +50,6 @@ def main():
 		pca = PCA(n_components = 2, whiten = True)
 		XTransposedPca = pca.fit_transform(XTransposed)
 		scatterplot(XTransposedPca)
-		# print ('Print tsDataTransposedPca size ' + str(tsDataTransposedPca.shape))
 
 	# 	pd.DataFrame(XTransposedPca).to_excel(writer, bactName)
 
@@ -73,16 +65,6 @@ def  scatterplot(X):
 	for m, c, i, j in zip(markers, colors, X[:,0], X[:,1]):
 	    plt.scatter(i, j, marker=m, c=c)
 
-	plt.show()
-
-
-
-def scatterplot2(df):
-
-	# ax = df.plot.scatter(x='a', y='b', color='DarkBlue', label='Group 1')
-	# df.plot.scatter(x='c', y='d', color='DarkGreen', label='Group 2', ax=ax)
-	df.plot.scatter(x='a', y='b', color='DarkGreen')
-	
 	plt.show()
 
 def normalisation(dataFrame):

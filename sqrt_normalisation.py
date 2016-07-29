@@ -37,9 +37,6 @@ def main():
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
 
-	# writer = pd.ExcelWriter('./data/sqrt_raw_data.xlsx')
-
-
 	for bactName in sheetNames:
 
 		writer = pd.ExcelWriter('./data/' + bactName + '_rawdata.xlsx')
@@ -60,10 +57,6 @@ def main():
 		
 		writer.save()
 
-		# break
-	# writer.save()
-
-
 
 
 def sqrt_normalisation(data):
@@ -74,10 +67,8 @@ def sqrt_normalisation(data):
 	c = np.zeros(M)
 
 	for j in range(M):
-		# print data[i,j]
 		c[j] = sum(data[:,j])
 		for i in range(N):
-			# print data[i,j]
 
 			norm_data[i][j] = sqrt(data[i,j]/c[j])
 

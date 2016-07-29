@@ -34,7 +34,7 @@ datasource = './data/'
 def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
-	dataMatrix, t = make_swiss_roll(n_samples = 1500, noise = 0.05, random_state = None)
+	dataMatrix, t = make_swiss_roll(n_samples = 1500, noise = 1, random_state = None)
 	# dataMatrix = np.random.rand(10,4)
 	dataMatrix2 = lle(dataMatrix, t)
 	# visualisation(dataMatrix, dataMatrix2, t)
@@ -83,7 +83,7 @@ def distance_matrix(dataMatrix):
 	return dMatrix
 
 def kernel_matrix(dMatrix):
-	# Value of sigma is very important, and objective of research.Here default value.
+	# Value of sigma is very important, and object of research.Here default value.
 	sigma = 2
 
 	# Define a kernel matrix
@@ -100,7 +100,6 @@ def kernel_matrix(dMatrix):
 		# Optimise here, exclude computation under diagonal
 		for j in range(N):
 			K[i, j] = exp(-(dMatrix[i, j]**2)/(2*(sigma**2)))
-			# d[i] += K[i,j]
 		d[i] = sum(K[i,:])
 
 	return K, d
@@ -131,11 +130,11 @@ def apply_svd(P):
 
 
 def diff_mapping(s, V , n_components , steps):
+
 	diffMap = np.zeros((n_components, V.shape[0]))
-	# print("Right singular vectors")
+
 	# "+1" starts from column 1 until column l+1
 	for i in range(n_components):
-		# print s[i+1]
 		# print (s[i+1]**t)*V[:,i+1] #wrong singular vectors
 		diffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
 
