@@ -20,6 +20,8 @@ from sklearn.utils.extmath import fast_dot
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.datasets import make_swiss_roll
 from sklearn import manifold, datasets
+from sklearn.decomposition import PCA
+from sklearn.decomposition import KernelPCA
 
 
 import matplotlib.cm as cm
@@ -34,15 +36,20 @@ datasource = './data/'
 def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
-	dataMatrix, t = make_swiss_roll(n_samples = 1500, noise = 1, random_state = None)
-	# dataMatrix = np.random.rand(10,4)
-	dataMatrix2 = lle(dataMatrix, t)
-	# visualisation(dataMatrix, dataMatrix2, t)
-	# exit()
+	X, colors = make_swiss_roll(n_samples = 1500, noise = 0.3, random_state = None)
+	
+	Xlle = lle(X, colors)
+	Xtsne = tsneVis(X)
+	Xpca = pca_function(X)
+	Xkpca = kernel_pca(X)
+	Xlapl = laplacian_embedding(X)
+	Xisom = isomap(X)
+	Xmds = mds(X)
+
 
 	# Calculate a matrix which returns pairwise distances 
 	# between two datapoints according to a metric
-	distMatrix = distance_matrix(dataMatrix)
+	distMatrix = distance_matrix(X)
 
 	# Choose a kernel function and create a kernel matrix
 	# with values according to a kernel function
@@ -65,13 +72,14 @@ def main():
 
 	# n_components , steps take a default value here until the algorithm is propely implemented.
 	# Their values is a matter of research
-	n_components = 3
-	steps = 3
+	n_components = 2
+	steps = 10
 
 	diffusionMappings = diff_mapping(s, Vh, n_components, steps)
-	# print diffusionMappings.shape
+	
 
-	visualisation(dataMatrix, diffusionMappings.transpose(), t)
+	#Call Visualisation function
+	visualisation(X, diffusionMappings.transpose(), Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, colors)
 
 
 
@@ -117,10 +125,7 @@ def markov_chain(K, d):
 			# P[i, j] = (K[i, j])/sqrt(d[i]**2)
 			P[i, j] = K[i, j]/d[i]
 
-	np.set_printoptions(precision=20)
-	
-	print ("Probability sums")
-	print sum(P)
+	np.set_printoptions(precision = 10)
 
 	return P
 
@@ -145,28 +150,87 @@ def diffusion_distance(dataMatrix, diffMapMatrix):
 
 
 def lle(X, color):
-	print("Computing LLE embedding")
-	X_r, err = manifold.locally_linear_embedding(X, n_neighbors=12, n_components=3)
-	print("Done. Reconstruction error: %g" % err)
+	# print("Computing LLE embedding")
+	X_r, err = manifold.locally_linear_embedding(X, n_neighbors=20, n_components=2)
+	# print("Done. Reconstruction error: %g" % err)
 	return X_r
 
+def tsneVis(data):
+	tsne = manifold.TSNE(n_components=2, random_state=0)
+	np.set_printoptions(suppress=True)
+	return tsne.fit_transform(data)
+
+def pca_function(data):
+	pca = PCA(n_components = 2, whiten = True)
+	return pca.fit_transform(data)
+
+def kernel_pca(data):
+	kernelpca = KernelPCA(n_components = 2)
+	return kernelpca.fit_transform(data)
+
+def laplacian_embedding(data):
+	laplacian = manifold.SpectralEmbedding(n_components = 2, affinity='nearest_neighbors')
+	return laplacian.fit_transform(data)
+
+def isomap(data):
+	isom = manifold.Isomap(n_components = 2, n_neighbors=5)
+	return isom.fit_transform(data)
+
+def mds(data):
+	mdsm = manifold.MDS(n_components =2)
+	return mdsm.fit_transform(data)
+
 	
-def visualisation(X, X_r, color):
+def visualisation(X, XdiffMap, Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, color):
 
 	fig = plt.figure()
 	try:
-	    ax = fig.add_subplot(211, projection='3d')
+	    ax = fig.add_subplot(331, projection='3d')
 	    ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap=plt.cm.Spectral)
 	except:
-	    ax = fig.add_subplot(211)
+	    ax = fig.add_subplot(331)
 	    ax.scatter(X[:, 0], X[:, 2], c=color, cmap=plt.cm.Spectral)
 
 	ax.set_title("Original data")
-	ax = fig.add_subplot(212)
-	ax.scatter(X_r[:, 0], X_r[:, 1], c=color, cmap=plt.cm.Spectral)
-	plt.axis('tight')
+
+	ax = fig.add_subplot(332)
+	ax.scatter(XdiffMap[:, 0], XdiffMap[:, 1], c=color, cmap=plt.cm.Spectral)
+	plt.title('Projected data on diffusion mappings space')
+
+
+	ax = fig.add_subplot(333)
+	ax.scatter(Xlle[:, 0], Xlle[:, 1], c=color, cmap=plt.cm.Spectral)
+	plt.title('Projected data on lle space')
+
+	ax = fig.add_subplot(334)
+	ax.scatter(Xlle[:, 0], Xlle[:, 1], c=color, cmap=plt.cm.Spectral)
+	plt.title('Projected data on t-SNE space')
+
+
+	ax = fig.add_subplot(335)
+	ax.scatter(Xpca[:, 0], Xpca[:, 1], c=color, cmap=plt.cm.Spectral)
+	plt.title('Projected data on PCA space')
+
+	ax = fig.add_subplot(336)
+	ax.scatter(Xkpca[:, 0], Xkpca[:, 1], c=color, cmap=plt.cm.Spectral)
+	plt.title('Projected data on kernel PCA space')
+
+	ax = fig.add_subplot(337)
+	ax.scatter(Xlapl[:, 0], Xlapl[:, 1], c=color, cmap=plt.cm.Spectral)
+	plt.title('Projected data on laplacian embedding space')
+
+
+	ax = fig.add_subplot(338)
+	ax.scatter(Xisom[:, 0], Xisom[:, 1], c=color, cmap=plt.cm.Spectral)
+	plt.title('Projected data on Isomap embedding space')
+
+	ax = fig.add_subplot(339)
+	ax.scatter(Xmds[:, 0], Xmds[:, 1], c=color, cmap=plt.cm.Spectral)
+	plt.title('Projected by MDS')
+
+
 	plt.xticks([]), plt.yticks([])
-	plt.title('Projected data')
+	plt.axis('tight')
 	plt.show()
 	
 

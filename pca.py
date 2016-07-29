@@ -17,7 +17,6 @@ import matplotlib.gridspec as gridspec
 
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
-from sklearn.decomposition import SparsePCA
 
 import datetime
 

@@ -53,10 +53,8 @@ def main():
 
 		normData = sqrt_normalisation(tsData.as_matrix())
 		pd.DataFrame(normData).to_excel(writer, bactName)
-
 		
 		writer.save()
-
 
 
 def sqrt_normalisation(data):
