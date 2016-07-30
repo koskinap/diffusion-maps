@@ -24,7 +24,6 @@ from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
 
 
-import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 

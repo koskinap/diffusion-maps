@@ -8,21 +8,28 @@ import openpyxl
 import numpy as np
 import pandas as pd
 
+from sklearn.utils.extmath import fast_dot
+from sklearn.metrics.pairwise import pairwise_distances
+from sklearn import manifold, datasets
+from sklearn.decomposition import PCA
+from sklearn.decomposition import KernelPCA
+
 import matplotlib
-import matplotlib.cm as cm
 import matplotlib.pyplot as plt
-# import matplotlib.gridspec as gridspec
+from matplotlib.offsetbox import AnnotationBbox, OffsetImage
+
+from mpl_toolkits.mplot3d import Axes3D
 
 from itertools import cycle
 
 matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
 
-datasource = './data/pcaData.xlsx'
+datasource = './data/sqrtall.xlsx'
 dtsource = './data/datetimes.xlsx'
 
 def main():
-	# Read PCA data, get names of the 6 sheets, for different types of bacteria
+
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
 
@@ -39,12 +46,16 @@ def main():
 		worksheet = xlData.parse(bactName)
 
 		# Keep only the actual timeseries data, last 30 columns
-		X = pd.DataFrame(worksheet.ix[:,:1]).as_matrix()
+		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
+		# Xmds = mds(X)
+		# Xle = laplacian_embedding(X)
+		# Xtsne = tsneVis(X) # congested results
+		Xisom = isomap(X)
 
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()
 
-		scatterplot(X, bactName, no, fig, dt)
+		scatterplot(Xisom, bactName, no, fig, dt)
 
 	plt.tight_layout()
 	plt.show()
@@ -73,6 +84,22 @@ def  scatterplot(X, bactName, no, fig, datetimes):
 
 	return fig
 
+def laplacian_embedding(data):
+	laplacian = manifold.SpectralEmbedding(n_components = 2, affinity='nearest_neighbors')
+	return laplacian.fit_transform(data)
+
+def mds(data):
+	mdsm = manifold.MDS(n_components =2)
+	return mdsm.fit_transform(data)
+
+def tsneVis(data):
+	model = manifold.TSNE(n_components=2, random_state=0)
+	np.set_printoptions(suppress=True)
+	return model.fit_transform(data)
+
+def isomap(data):
+	isom = manifold.Isomap(n_components = 2, n_neighbors=5)
+	return isom.fit_transform(data)
 
 if __name__ == '__main__':
 	main()
