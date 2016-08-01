@@ -1,17 +1,11 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Script 2.1: Normalise data in several ways and store in separate files
-# In case of Sqrt normalisation, memory efficiency problems were faced, 
-# so each Bacteria type was saved in separate file adn then was merged into one
-# (see Script 2:sqrt_normalisation.py).
-
-from __future__ import division
+# Script 2: Create boxplots of original and normalised/standarized data
 
 import os, math
 import string
 import openpyxl
-from math import sqrt
 
 import numpy as np
 from numpy import linalg as LA
@@ -39,56 +33,37 @@ def main():
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
 
-	normMethod = 'sqrt'
-
-	writer = pd.ExcelWriter('./data/normalised/' + normMethod + 'Data.xlsx')
-
-
 	for bactName in sheetNames:
-
 		worksheet = xlData.parse(bactName)
 		# Keep only the actual timeseries data, last 30 columns
 		X = worksheet.ix[:,-30:]
 		Xdf = pd.DataFrame(X)
+		# X2df = sqrtXldata.parse(bactName)
 
 		# Print dimensions of working spreadsheet
 		print bactName
 		print worksheet.shape
 
-
-		if normMethod == 'MinMaxScaler':
-			normData = minMaxNormalisation(X.as_matrix())
-
-		elif normMethod == 'Normalisation':
-			normData = normalisation(X.as_matrix())
+		#minmaxscaler --> returns dataframe
+		minMaxScaledX = minMaxNormalisation(Xdf)
 		
-		elif normMethod == 'Standarization':
-			normData = standarization(X.as_matrix())
+		# sklearn_normalize --> returns ndarray
+		normalisedX = normalisation(X)
+		normalisedXdf = pd.DataFrame(X)
 		
-		elif normMethod == 'sqrt':
-			normData = sqrt_normalisation(X.as_matrix())
+		#sklearn-standarize --> returns dataframe
+		standarizedX = standarization(Xdf)
 		
-		else:
-			normData = X.as_matrix()
+		# Create a boxplot per timestamp per bacteria
+		boxplot(X, 'Original data')
+		boxplot(minMaxScaledX, 'Data normalised with MinMaxScaler')
+		boxplot(normalisedXdf, 'Normalised data')
+		boxplot(standarizedX, 'Standarised data')
+		# boxplot(X2df, 'Square data')
+		break
 
-		pd.DataFrame(normData).to_excel(writer, bactName)
+
 		
-	writer.save()
-
-def sqrt_normalisation(data):
-	N = data.shape[0]
-	M = data.shape[1]
-	
-	norm_data = np.zeros((N,N))
-	c = np.zeros(M)
-
-	for j in range(M):
-		c[j] = sum(data[:,j])
-		for i in range(N):
-
-			norm_data[i][j] = sqrt(data[i,j]/c[j])
-
-	return norm_data
 
 
 def minMaxNormalisation(dataFrame):
@@ -109,10 +84,11 @@ def standarization(dataFrame):
 
 	return dfStandarized
 
-def boxplot(data):
+def boxplot(data, title):
 	plt.figure()
 	data.boxplot(return_type='dict')
 	plt.show()
+
 
 if __name__ == '__main__':
 	main()

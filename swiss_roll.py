@@ -35,7 +35,11 @@ datasource = './data/'
 def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
-	X, colors = make_swiss_roll(n_samples = 1500, noise = 0.3, random_state = None)
+	X, colors = make_swiss_roll(n_samples = 15, noise = 0.3, random_state = None)
+
+	print X
+	print colors
+	exit()
 	
 	Xlle = lle(X, colors)
 	Xtsne = tsneVis(X)
