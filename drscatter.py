@@ -1,7 +1,8 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Script 5: Visulisation-scatterplot
+# Script 6: Visulisation-scatterplot of timepoints in 2D space, 
+# using a selected dimensionality reduction technique
 
 import openpyxl
 
@@ -25,7 +26,7 @@ from itertools import cycle
 matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
 
-datasource = './data/sqrtall.xlsx'
+datasource = './data/normalised/sqrtData.xlsx'
 dtsource = './data/datetimes.xlsx'
 
 def main():
@@ -47,24 +48,34 @@ def main():
 
 		# Keep only the actual timeseries data, last 30 columns
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
-		# Xmds = mds(X)
-		# Xle = laplacian_embedding(X)
-		# Xtsne = tsneVis(X) # congested results
-		Xisom = isomap(X)
 
+		# Perform dimensionality reduction, cho
+		# drX = mds(X)
+		# drX = laplacian_embedding(X)
+		# drX = tsneVis(X) # congested results
+		drX = isomap(X)
+
+		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()
 
-		scatterplot(Xisom, bactName, no, fig, dt)
+		scatterplot(drX, bactName, no, fig, dt)
 
 	plt.tight_layout()
 	plt.show()
 
 def  scatterplot(X, bactName, no, fig, datetimes):
 
-	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', '^', '^', '^', '^', '+']		
-	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen', 'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', 'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
+	# Create a custom set of markers with custom colours to reproduce results
+	 # of previous research and compare after dimensionality reduction
+	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
+	'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', \
+	'^', '^', '^', '^', '+']
 
+	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
+	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
+	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
+	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
 
 	ax = fig.add_subplot(no)
 	ax.set_title(bactName)
@@ -79,8 +90,8 @@ def  scatterplot(X, bactName, no, fig, datetimes):
 
 	fig.legend(points, names, 'center right', ncol=1)
 
-	plt.xlabel('PC1')
-	plt.ylabel('PC2')
+	plt.xlabel('Component 1')
+	plt.ylabel('Component 2')
 
 	return fig
 

@@ -34,50 +34,44 @@ resultsource = './data/results.csv'
 np.set_printoptions(precision=10)
 
 
-
 def main():
-	# from_csv
-	data = pd.read_csv( datasource, header = None )
-	print data.shape
+	# data = pd.read_csv( datasource, header = None )
+	# print data.shape
 
-	diffresults = pd.read_csv( resultsource, header = None )
-	print diffresults.shape
+	# diffresults = pd.read_csv( resultsource, header = None )
+	# print diffresults.shape
+	# dataMatrix = data.as_matrix()
 
-	#For testing purposes of the framework, a swiss roll dataset is generated.
-	# dataMatrix, t = make_swiss_roll(n_samples = 4, noise = 0.05, random_state = None)
-	# dataMatrix = np.random.rand(20, 5)
-	# dataMatrix = np.ones((10, 5))
-	dataMatrix = data.as_matrix()
+
+	#For testing purposes of the framework, a random dataset is generated.
+	dataMatrix = np.random.rand(10, 20)
+	# X, colors = make_swiss_roll(n_samples = 1500, noise = 0, random_state = None)
+
+	# dataMatrix = np.array([[3, 4, 1, 7], [6, 2, 9, 0], [8,5,1,4]])
+
 
 	# Calculate a matrix which returns pairwise distances 
 	# between two datapoints according to a metric
 	distMatrix = distance_matrix(dataMatrix)
 
-	# Choose a kernel function and create a kernel matrix
+	# Choose a kernel function and create a kernelMatrixernel matrix
 	# with values according to a kernel function
 	kernelMatrix, totalDist = kernel_matrix(distMatrix)
+	# print('\n Kernel matrix \n')
+	# print kernelMatrix
 
 	# Create probability transition matrix from kernel matrix and total dist.
 	probMatrix = markov_chain(kernelMatrix, totalDist)
-	# eigvals, eigvecs = eig(kernelMatrix)
-	# print("\n Eigen")
-	# # # print eigvec[0:4,0:2]
-	# # print eigvecs.shape
-
-	# # eigvalssorted = np.sort(eigvals)
-	# # eigvecssorted = eigvecs[:, eigvals.argsort()]
-	# # print eigvecssorted[:,8]
-	# # exit()
-
-	# print("\n laplacian")
-	# laplEig = laplacian_embedding(probMatrix)
-	# print laplEig.shape
-	# print laplEig[:, 0]
-
+	# print('\n Probability matrix \n')
+	# print probMatrix
+	# exit()
 
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
-	U, s, V = apply_svd(probMatrix.transpose())
+	U, s, Vh = apply_svd(probMatrix)
+	print('\n Singular values')
+	print s
+	exit()
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components: parameter is the number of intrinsic dimensionality of the data
@@ -88,7 +82,7 @@ def main():
 	n_components = 2
 	steps = 1
 
-	diffusionMappings = diff_mapping(s, V, n_components, steps)
+	diffusionMappings = diff_mapping(s, Vh, n_components, steps)
 	# print diffusionMappings.shape
 
 	print diffusionMappings.transpose()
@@ -121,10 +115,12 @@ def kernel_matrix(dMatrix):
 
 	# Define Gaussian kernel : exp(-(dMatrix[i, j]**2)/(2*(sigma**2)))
 	for i in range(N):
-		# Optimise here, exclude computation under diagonal
 		for j in range(N):
 			K[i, j] = exp(-(dMatrix[i, j]**2)/(2*(sigma**2)))
-		d[i] = sum(K[i,:])
+		# d[i] = sum(K[i,:])
+
+	d = np.sum(K, axis = 1)
+	# print d
 
 	return K, d
 
@@ -138,35 +134,47 @@ def markov_chain(K, d):
 
 	# Normalise distances by converting to probabilities by 
 	# dividing with total distance to each node of the graph
+
+	# Solution 1
+
 	# for i in range(N):
 	# 	for j in range(N):
-	# 		# P[i, j] = (K[i, j])/sqrt(d[i]**2)
 	# 		P[i, j] = K[i, j]/d[i]
 
-	D = np.diag(d)
-	P2 = np.dot(inv(D), K)
-	# print P - P2.transpose()
+	# Solution 2
+	d2 = np.zeros(N)
+	Knorm = np.zeros((N,N))
+
+	for i in range(N):
+		for j in range(N):
+			Knorm[i, j] = K[i, j]/(sqrt(d[i])*sqrt(d[j]))
+			# Knorm[i, j] = K[i, j]/d[i]
+		d2[i] = sum(Knorm[i,:])
+	D = np.diag(d2)
+	P = np.inner(inv(D), Knorm)
 
 	
-	# print ("Probability sums")
+	print ("\n Probability sums \n")
 	# print np.sum(P, axis = 1)
+	for i in range(N):
+		print sum(P[i,:])
 
 	# P is not symmetric!!!
-	return P2
+	return P
 
 def apply_svd(P):
 	# Apply SVD, return the 3 U, s, Vh matrices sorted by singular value descending
 	return svd(P, full_matrices = True, compute_uv = True)
 
 
-def diff_mapping(s, V , n_components , steps):
-	diffMap = np.zeros((n_components, V.shape[0]))
+def diff_mapping(s, Vh , n_components , steps):
+	diffMap = np.zeros((n_components, Vh.shape[0]))
 
 	# "+1" starts from column 1 until column l+1
 	for i in range(n_components):
-		diffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
+		diffMap[i,:] = (s[i+1]**steps)*Vh[i+1,:]
 
-	return diffMap
+	return diffMap.transpose()
 
 def diffusion_distance(dataMatrix, diffMapMatrix):
 	# May not be needed

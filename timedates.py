@@ -4,6 +4,8 @@ import openpyxl
 import numpy as np
 import pandas as pd
 
+# Script 1.1: Gets date-time points for future use(mainly in graphs)
+
 # This script gathers the timedates of the timeseries datapoints 
 # for future use e.g. as legends in figures
 
@@ -19,6 +21,7 @@ def main():
 		worksheet = xlData.parse(bactName)
 		# Keep only the actual timeseries data, last 30 columns
 		X = worksheet.ix[:,-30:]
+		# Gets names of columns, which are time-date points
 		datetimeList = list(X.columns.values)
 		for index, dt in enumerate(datetimeList):
 			datetimeList[index] = dt.strftime('%m/%d/%Y %H:%M')

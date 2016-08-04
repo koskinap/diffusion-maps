@@ -22,10 +22,12 @@ matplotlib.style.use('ggplot')
 originalDataSource = './data/Science_ortholog_cluster_counts_all_taxa.xlsx'
 
 datasource = './data/normalised/'
-filesource = ['RawData.xlsx','normalisedData.xlsx','standarizedData.xlsx','MinMaxScalerData.xlsx','sqrtData.xlsx']
+filesource = ['RawData.xlsx','NormalisationData.xlsx','StandardisationData.xlsx', \
+'MinMaxScalerData.xlsx', 'sqrtData.xlsx','NormalisationByRowData.xlsx']
 dtsource = './data/datetimes.xlsx'
 
-titles = ['Original data', 'Normalised data', 'Standarised data', 'Normalised data with MinMaxScale','Square root divided by sum normalised data']
+titles = ['Original data', 'Normalised data', 'Standardised data', \
+'Scaled data with MinMaxScale','Square root divided by sum data','Normalisation by row']
 
 def main():
 
@@ -61,10 +63,7 @@ def main():
 
 			no += 1
 
-		# fig.set_size_inches(6,11)
-		# plt.title(bactName + ' boxplots of different normalisation methods')
 		plt.tight_layout()
-		# plt.figlegend( range(30), dtList, loc = 'lower right', ncol=3, labelspacing=0. )		
 		plt.show()
 
 		break
@@ -76,7 +75,6 @@ def boxplot(data, fig, title, no, dtList):
 
 	data.boxplot(return_type='dict')
 
-	# plt.xticks(range(30), dtList, rotation=60)
 	plt.xlabel('Time point')
 	plt.ylabel('Values')
 

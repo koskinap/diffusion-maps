@@ -39,7 +39,9 @@ def main():
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
 
-	normMethod = 'sqrt'
+	# Select scaling method between [MinMaxScaler, Standardisation ,Normalisation
+	 # sqrt,NormalisationByRow]
+	normMethod = 'NormalisationByRow'
 
 	writer = pd.ExcelWriter('./data/normalised/' + normMethod + 'Data.xlsx')
 
@@ -55,19 +57,22 @@ def main():
 		print bactName
 		print worksheet.shape
 
-
+		# Normalise according to selected scaling method
 		if normMethod == 'MinMaxScaler':
 			normData = minMaxNormalisation(X.as_matrix())
 
 		elif normMethod == 'Normalisation':
-			normData = normalisation(X.as_matrix())
+			normData = normalisation(X.as_matrix(), 1)
 		
-		elif normMethod == 'Standarization':
+		elif normMethod == 'Standardisation':
 			normData = standarization(X.as_matrix())
-		
+
 		elif normMethod == 'sqrt':
 			normData = sqrt_normalisation(X.as_matrix())
-		
+
+		elif normMethod == 'NormalisationByRow':
+			normData = normalisation(X.as_matrix(), 0)
+
 		else:
 			normData = X.as_matrix()
 
@@ -99,8 +104,8 @@ def minMaxNormalisation(dataFrame):
 
 	return dfNormalized
 
-def normalisation(dataFrame):
-	return preprocessing.normalize(dataFrame)
+def normalisation(dataFrame, axis):
+	return preprocessing.normalize(dataFrame, axis = axis)
 
 def standarization(dataFrame):
 	standardScaler = preprocessing.StandardScaler()

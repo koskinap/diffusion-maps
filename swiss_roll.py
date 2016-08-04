@@ -13,6 +13,7 @@ import string
 
 import numpy as np
 from numpy.linalg import svd
+from numpy.linalg import inv
 
 import pandas as pd
 
@@ -35,11 +36,7 @@ datasource = './data/'
 def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
-	X, colors = make_swiss_roll(n_samples = 15, noise = 0.3, random_state = None)
-
-	print X
-	print colors
-	exit()
+	X, colors = make_swiss_roll(n_samples = 1500, noise = 0, random_state = None)
 	
 	Xlle = lle(X, colors)
 	Xtsne = tsneVis(X)
@@ -65,9 +62,6 @@ def main():
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
 	U, s, Vh = apply_svd(probMatrix)
-	# print ("Singular values")
-	# print s
-	# print V
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components parameter is the number of intrinsic dimensionality of the data
@@ -82,7 +76,7 @@ def main():
 	
 
 	#Call Visualisation function
-	visualisation(X, diffusionMappings.transpose(), Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, colors)
+	visualisation(X, diffusionMappings, Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, colors)
 
 
 
@@ -117,36 +111,48 @@ def kernel_matrix(dMatrix):
 
 
 def markov_chain(K, d):
+	print("Calculating Markov chain matrix")
+
 	N = K.shape[0]
 	# Initialise NxN probability transition matrix
 	P = np.zeros((N,N))
 
-	# Normalise probabilities by dividing with total
-	# distance to each node of the graph
+	# Normalise distances by converting to probabilities by 
+	# dividing with total distance to each node of the graph
+
+	# Solution 2
+	d2 = np.zeros(N)
+	Knorm = np.zeros((N,N))
+
 	for i in range(N):
 		for j in range(N):
-			# P[i, j] = (K[i, j])/sqrt(d[i]**2)
-			P[i, j] = K[i, j]/d[i]
+			Knorm[i, j] = K[i, j]/sqrt(d[i]*d[j])
+		d2[i] = sum(Knorm[i,:])
+	D = np.diag(d2)
+	P = np.inner(inv(D), Knorm)
 
-	np.set_printoptions(precision = 10)
+	
+	# for i in range(N):
+	# 	print sum(P[i,:])
 
+	# P is not symmetric!!!
 	return P
+
 
 def apply_svd(P):
 	# Apply SVD, return the 3 U, s, V matrices sorted by eigenvalue descending
 	return svd(P, full_matrices = True, compute_uv = True)
 
 
-def diff_mapping(s, V , n_components , steps):
+def diff_mapping(s, Vh , n_components , steps):
 
-	diffMap = np.zeros((n_components, V.shape[0]))
+	diffMap = np.zeros((n_components, Vh.shape[0]))
 
 	# "+1" starts from column 1 until column l+1
 	for i in range(n_components):
-		# print (s[i+1]**t)*V[:,i+1] #wrong singular vectors
-		diffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
+		diffMap[i,:] = (s[i+1]**steps)*Vh[i+1,:]
 
-	return diffMap
+	return diffMap.transpose()
 
 def diffusion_distance(dataMatrix, diffMapMatrix):
 	pass
@@ -187,17 +193,20 @@ def mds(data):
 def visualisation(X, XdiffMap, Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, color):
 
 	fig = plt.figure()
-	try:
-	    ax = fig.add_subplot(331, projection='3d')
-	    ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap=plt.cm.Spectral)
-	except:
-	    ax = fig.add_subplot(331)
-	    ax.scatter(X[:, 0], X[:, 2], c=color, cmap=plt.cm.Spectral)
+	# try:
+	#     ax = fig.add_subplot(331, projection='3d')
+	#     ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap=plt.cm.Spectral)
+	# except:
+	#     ax = fig.add_subplot(331)
+	#     ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
+	ax = fig.add_subplot(331)
+	ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
 
 	ax.set_title("Original data")
 
 	ax = fig.add_subplot(332)
 	ax.scatter(XdiffMap[:, 0], XdiffMap[:, 1], c=color, cmap=plt.cm.Spectral)
+	
 	plt.title('Projected data on diffusion mappings space')
 
 
