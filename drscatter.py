@@ -9,17 +9,16 @@ import openpyxl
 import numpy as np
 import pandas as pd
 
-from sklearn.utils.extmath import fast_dot
-from sklearn.metrics.pairwise import pairwise_distances
-from sklearn import manifold, datasets
+from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
 
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
-
 from mpl_toolkits.mplot3d import Axes3D
+
+from diffusion_framework import main as diffusion_framework
 
 from itertools import cycle
 
@@ -27,6 +26,8 @@ matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
 
 datasource = './data/normalised/sqrtData.xlsx'
+# datasource = './data/normalised/NormalisationData.xlsx'
+
 dtsource = './data/datetimes.xlsx'
 
 def main():
@@ -46,6 +47,9 @@ def main():
 		no += licycle.next()
 		worksheet = xlData.parse(bactName)
 
+		print('\nComputing embedding for')
+		print bactName
+
 		# Keep only the actual timeseries data, last 30 columns
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
 
@@ -53,12 +57,16 @@ def main():
 		# drX = mds(X)
 		# drX = laplacian_embedding(X)
 		# drX = tsneVis(X) # congested results
-		drX = isomap(X)
+		# drX = isomap(X)
+		drX, ErrMessages = diffusion_framework(X, n_components = 2, sigma = 0.4, steps = 1)
+		if len(ErrMessages)>0:
+			for err in ErrMessages:
+				print err
+			exit()
 
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()
-
 		scatterplot(drX, bactName, no, fig, dt)
 
 	plt.tight_layout()

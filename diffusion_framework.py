@@ -12,6 +12,8 @@ import string
 
 import numpy as np
 from numpy.linalg import svd
+from numpy.linalg import inv
+from scipy.linalg import svd as scipysvd
 
 import pandas as pd
 
@@ -27,10 +29,24 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 datasource = './data/'
 
 
-def main():
+def main(X,  n_components, sigma, steps):
+
+	ErrMessages = []
+	if not(isinstance(n_components, int) and n_components>0):
+		ErrMessages.append("Number of components should be a positive integer")
+
+	if not(isinstance(steps, int) and steps>0):
+		ErrMessages.append("Number of steps on Markov chain should be a positive integer")
+	
+	if not(sigma>0):
+		ErrMessages.append("Sigma value should be positive")
+
+	if len(ErrMessages)>0:
+		return None, ErrMessages
 
 	# For testing purposes of the framework, a swiss roll dataset is generated.
-	dataMatrix = np.random.rand(100,2)
+	# dataMatrix = np.random.rand(100,2)
+	dataMatrix = X
 
 	# Calculate a matrix which returns pairwise distances 
 	# between two datapoints according to a metric
@@ -38,7 +54,7 @@ def main():
 
 	# Choose a kernel function and create a kernel matrix
 	# with values according to a kernel function
-	kernelMatrix, totalDist = kernel_matrix(distMatrix)
+	kernelMatrix, totalDist = kernel_matrix(distMatrix, sigma)
 
 	# Create probability transition matrix from kernel matrix and total dist.
 	probMatrix = markov_chain(kernelMatrix, totalDist)
@@ -46,20 +62,16 @@ def main():
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
 	U, s, V = apply_svd(probMatrix)
+	print s
 
 	# Define the diffusion mapping which will be used to represent the data
-	# n_components: parameter is the number of intrinsic dimensionality of the data
+	# n_components: parameter is the number of the components we need our ampping to have
 	# steps: is the parameter of  the forward steps propagating on Markov process
-
-	# n_components , steps take a default value here until the algorithm is propely implemented.
 	# Their values is a matter of research
-	n_components = 2
-	steps = 1
 
 	diffusionMappings = diff_mapping(s, V, n_components, steps)
+	return diffusionMappings, ErrMessages
 	# print diffusionMappings.shape
-
-
 
 def distance_matrix(dataMatrix):
 	print("Calculating distance matrix")
@@ -69,12 +81,12 @@ def distance_matrix(dataMatrix):
 
 	return dMatrix
 
-def kernel_matrix(dMatrix):
+def kernel_matrix(dMatrix, sigma):
 
 	print("Calculating Kernel matrix")
 
 	# Value of sigma is very important, and objective of research.Here default value.
-	sigma = 1
+	# sigma = 1
 
 	# Define a kernel matrix
 
@@ -90,7 +102,9 @@ def kernel_matrix(dMatrix):
 		# Optimise here, exclude computation under diagonal
 		for j in range(N):
 			K[i, j] = exp(-(dMatrix[i, j]**2)/(2*(sigma**2)))
-		d[i] = sum(K[i,:])
+		# d[i] = sum(K[i,:])
+
+	d = np.sum(K, axis = 1)
 
 	return K, d
 
@@ -107,25 +121,32 @@ def markov_chain(K, d):
 	# Solution 1
 	d2 = np.zeros(N)
 	Knorm = np.zeros((N,N))
-
-	for i in range(N):
-		for j in range(N):
-			Knorm[i, j] = K[i, j]/(sqrt(d[i])*sqrt(d[j]))
-		d2[i] = sum(Knorm[i,:])
-	D = np.diag(d2)
-	P = np.inner(inv(D), Knorm)
+	Dnorm = np.zeros((N,N))
 	
+	Dtemp = np.diag(d)
+	# np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal()**0.5))
+	np.fill_diagonal(Dnorm, 1/(np.sqrt(Dtemp.diagonal())))
+
+	# np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal()))
+
+
+	Knorm = np.dot(Dnorm, K).dot(Dnorm)
+
+	d2 = np.sum(Knorm, axis = 1)
+
+	D = np.diag(d2)
+	P = np.dot(inv(D), Knorm)
+
 	# print ("\n Probability sums \n")
 	# for i in range(N):
 	# 	print sum(P[i,:])
-
 	# P is not symmetric!!!
 	return P
 
 def apply_svd(P):
 	# Apply SVD, return the 3 U, s, Vh matrices sorted by singular value descending
-	return svd(P, full_matrices = True, compute_uv = True)
-
+	# return svd(P, full_matrices = True, compute_uv = True)
+	return scipysvd(P, full_matrices = True, compute_uv = True)
 
 def diff_mapping(s, V , n_components , steps):
 	diffMap = np.zeros((n_components, V.shape[0]))
@@ -133,6 +154,7 @@ def diff_mapping(s, V , n_components , steps):
 	# "+1" to start from right singular vector 1 
 	# until l+1, ignoring 0(1st singular value is equal to 1)
 	for i in range(n_components):
+		# print s[i+1]
 		diffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
 
 	return diffMap.transpose()
