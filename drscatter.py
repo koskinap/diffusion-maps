@@ -59,7 +59,7 @@ def main():
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
 		# drX = lle(X)
-		drX, ErrMessages = diffusion_framework(X, n_components = 2, sigma = 0.4, steps = 1, alpha = 0.5)
+		drX, ErrMessages = diffusion_framework(X, metric='euclidean', kernel = 'gaussian' , n_components = 2, sigma = 0.4, steps = 1, alpha = 0.5)
 		if len(ErrMessages)>0:
 			for err in ErrMessages:
 				print err
