@@ -29,7 +29,7 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 datasource = './data/'
 np.set_printoptions(precision=10)
 
-def main(X, metric, kernel, n_components, sigma, steps, alpha):
+def main(X, kernel, n_components, sigma, steps, alpha):
 
 	ErrMessages = []
 	if not(isinstance(n_components, int) and n_components>0):
@@ -44,8 +44,8 @@ def main(X, metric, kernel, n_components, sigma, steps, alpha):
 	if not(alpha>=0 and alpha<=1):
 		ErrMessages.append("Alpha value should have a value in [0,1].")
 
-	if not(metric in ['euclidean','cosine']):
-		ErrMessages.append("Metric should be euclidean or cosine")
+	if not(kernel in ['gaussian','cosine']):
+		ErrMessages.append("Kernel method should be gaussian or cosine")
 
 	if len(ErrMessages)>0:
 		return None, ErrMessages
@@ -58,14 +58,14 @@ def main(X, metric, kernel, n_components, sigma, steps, alpha):
 		# between two datapoints according to a metric
 
 		# distMatrix = distance_matrix(dataMatrix)
-		# kernelMatrix = kernel_matrix(distMatrix, sigma, kernel, metric)
+		# kernelMatrix = kernel_matrix(distMatrix, sigma, kernel)
 
 		# Choose a kernel function and create a kernel matrix
 		# with values according to a kernel function
-		kernelMatrix = kernel_matrix(dataMatrix, sigma, kernel, metric)
+		kernelMatrix = kernel_matrix(dataMatrix, sigma, kernel)
 
 	elif kernel == 'cosine':
-		kernelMatrix = kernel_matrix(dataMatrix, sigma, kernel, metric)
+		kernelMatrix = kernel_matrix(dataMatrix, sigma, kernel)
 
 	# Create probability transition matrix from kernel matrix and total dist.
 	probMatrix = markov_chain(kernelMatrix, alpha)
@@ -94,7 +94,7 @@ def main(X, metric, kernel, n_components, sigma, steps, alpha):
 
 # 	return dMatrix
 
-def kernel_matrix(X, sigma, kernel, metric):
+def kernel_matrix(X, sigma, kernel):
 
 	print("Calculating Kernel matrix")
 
@@ -105,13 +105,13 @@ def kernel_matrix(X, sigma, kernel, metric):
 	K = np.zeros((N, N))
 
 	if kernel == 'gaussian':
-		distMatrix = pairwise_distances(X, metric = metric)
+		distMatrix = pairwise_distances(X, metric = 'euclidean')
 		# Define Gaussian kernel : exp(-(distMatrix[i, j]**2)/(2*(sigma**2)))
 		for i in range(N):
 			for j in range(N):
 				K[i, j] = exp(-(distMatrix[i, j]**2)/(2*(sigma**2)))
 	elif kernel=='cosine':
-		K = pairwise_distances(X, metric = 'cosine')
+		K = pairwise_distances(X, metric = kernel)
 
 	return K
 
