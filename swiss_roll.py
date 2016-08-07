@@ -33,7 +33,7 @@ def main():
 	Xisom = isomap(X)
 	Xmds = mds(X)
 
-	XdiffMap,ErrMessages = diffusion_framework(X, n_components = 2, sigma = 1, steps = 1)
+	XdiffMap,ErrMessages = diffusion_framework(X, n_components = 2, sigma = 1, steps = 1, alpha = 0.5)
 	if len(ErrMessages)>0:
 		for err in ErrMessages:
 			print err

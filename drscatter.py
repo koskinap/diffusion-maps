@@ -59,12 +59,11 @@ def main():
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
 		# drX = lle(X)
-		drX, ErrMessages = diffusion_framework(X, n_components = 2, sigma = 0.4, steps = 1)
+		drX, ErrMessages = diffusion_framework(X, n_components = 2, sigma = 0.4, steps = 1, alpha = 0.5)
 		if len(ErrMessages)>0:
 			for err in ErrMessages:
 				print err
 			exit()
-		# break
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()

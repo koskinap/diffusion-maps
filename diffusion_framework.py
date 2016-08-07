@@ -29,17 +29,21 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 datasource = './data/'
 np.set_printoptions(precision=10)
 
-def main(X,  n_components, sigma, steps):
+def main(X,  n_components, sigma, steps, alpha):
 
 	ErrMessages = []
 	if not(isinstance(n_components, int) and n_components>0):
-		ErrMessages.append("Number of components should be a positive integer")
+		ErrMessages.append("Number of components should be a positive integer.")
 
 	if not(isinstance(steps, int) and steps>0):
-		ErrMessages.append("Number of steps on Markov chain should be a positive integer")
+		ErrMessages.append("Number of steps on Markov chain should be a positive integer.")
 	
 	if not(sigma>0):
-		ErrMessages.append("Sigma value should be positive")
+		ErrMessages.append("Sigma value should be a positive number.")
+
+	if not(alpha>=0 and alpha<=1):
+		ErrMessages.append("Alpha value should have a value in [0,1].")
+
 
 	if len(ErrMessages)>0:
 		return None, ErrMessages
@@ -57,13 +61,12 @@ def main(X,  n_components, sigma, steps):
 	kernelMatrix, totalDist = kernel_matrix(distMatrix, sigma)
 
 	# Create probability transition matrix from kernel matrix and total dist.
-	probMatrix = markov_chain(kernelMatrix, totalDist)
+	probMatrix = markov_chain(kernelMatrix, totalDist, alpha)
 
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
 	U, s, V = apply_svd(probMatrix)
-	print("Singular values")
-	print s
+	# print("Singular values")
 	# print s
 
 	# Define the diffusion mapping which will be used to represent the data
@@ -72,8 +75,9 @@ def main(X,  n_components, sigma, steps):
 	# Their values is a matter of research
 
 	diffusionMappings = diff_mapping(s, V, n_components, steps)
+	diffusionDistances = diffusion_distance(s, V, steps)
+	print diffusionDistances.shape
 	return diffusionMappings, ErrMessages
-	# print diffusionMappings.shape
 
 def distance_matrix(dataMatrix):
 	print("Calculating distance matrix")
@@ -88,7 +92,6 @@ def kernel_matrix(dMatrix, sigma):
 	print("Calculating Kernel matrix")
 
 	# Value of sigma is very important, and objective of research.Here default value.
-	# sigma = 1
 
 	# Define a kernel matrix
 
@@ -104,14 +107,13 @@ def kernel_matrix(dMatrix, sigma):
 		# Optimise here, exclude computation under diagonal
 		for j in range(N):
 			K[i, j] = exp(-(dMatrix[i, j]**2)/(2*(sigma**2)))
-		# d[i] = sum(K[i,:])
 
 	d = np.sum(K, axis = 1)
 
 	return K, d
 
 
-def markov_chain(K, d):
+def markov_chain(K, d, alpha):
 	print("Calculating Markov chain matrix")
 
 	N = K.shape[0]
@@ -125,24 +127,22 @@ def markov_chain(K, d):
 	Dnorm = np.zeros((N,N))
 	
 	Dtemp = np.diag(d)
-	np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal()**0.5))
+	np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal()**alpha))
 	Knorm = np.dot(Dnorm, K).dot(Dnorm)
-	# P = Knorm
-
 
 	# Solution 1
 	d2 = np.sum(Knorm, axis = 1)
-	print type(d2)
 	D = np.diag(d2)
 	P = np.dot(inv(D), Knorm)
 
 
-	#Solution 2
+	#Solution 2 according to van Maaten, without probability matrix
 	# d2 = np.sum(Knorm, axis = 1)
 	# d3 = np.sqrt(d2)
 	# D = np.dot(d3[:,None],d3.transpose()[None,:])
 	# P = np.divide(Knorm, D)
 
+	# Make sure total sum of each row is equal to 1
 	# print ("\n Probability sums \n")
 	# for i in range(N):
 	# 	print sum(P[:,i])
@@ -164,10 +164,21 @@ def diff_mapping(s, V , n_components , steps):
 
 	return diffMap.transpose()
 
-def diffusion_distance(dataMatrix, diffMapMatrix):
-	# May not be needed
-	pass
+def diffusion_distance(s, V, steps):
+	N = V.shape[0]
+	tDiffMap = np.zeros((N-1, N))
+
+	# "+1" to start from right singular vector 1 
+	# until l+1, ignoring 0(1st singular value is equal to 1)
+	for i in range(N-1):
+		tDiffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
 	
+	fullDiffMap = tDiffMap.transpose()
+
+	diffDist = pairwise_distances(fullDiffMap, metric = 'euclidean')
+
+	return diffDist
+
 
 if __name__ == '__main__':
 	main()
