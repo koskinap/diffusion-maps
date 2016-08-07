@@ -58,12 +58,13 @@ def main():
 		# drX = laplacian_embedding(X)
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
+		# drX = lle(X)
 		drX, ErrMessages = diffusion_framework(X, n_components = 2, sigma = 0.4, steps = 1)
 		if len(ErrMessages)>0:
 			for err in ErrMessages:
 				print err
 			exit()
-
+		# break
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()
@@ -102,6 +103,13 @@ def  scatterplot(X, bactName, no, fig, datetimes):
 	plt.ylabel('Component 2')
 
 	return fig
+
+
+def lle(data):
+	# print("Computing LLE embedding")
+	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=5, n_components=2)
+	# print("Done. Reconstruction error: %g" % err)
+	return X_r
 
 def laplacian_embedding(data):
 	laplacian = manifold.SpectralEmbedding(n_components = 2, affinity='nearest_neighbors')

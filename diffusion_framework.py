@@ -27,7 +27,7 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
 
 datasource = './data/'
-
+np.set_printoptions(precision=10)
 
 def main(X,  n_components, sigma, steps):
 
@@ -62,7 +62,9 @@ def main(X,  n_components, sigma, steps):
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
 	U, s, V = apply_svd(probMatrix)
+	print("Singular values")
 	print s
+	# print s
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components: parameter is the number of the components we need our ampping to have
@@ -118,35 +120,39 @@ def markov_chain(K, d):
 
 	# Normalise distances by converting to probabilities by 
 	# dividing with total distance to each node of the graph
-	# Solution 1
 	d2 = np.zeros(N)
 	Knorm = np.zeros((N,N))
 	Dnorm = np.zeros((N,N))
 	
 	Dtemp = np.diag(d)
-	# np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal()**0.5))
-	np.fill_diagonal(Dnorm, 1/(np.sqrt(Dtemp.diagonal())))
-
-	# np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal()))
-
-
+	np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal()**0.5))
 	Knorm = np.dot(Dnorm, K).dot(Dnorm)
+	# P = Knorm
 
+
+	# Solution 1
 	d2 = np.sum(Knorm, axis = 1)
-
+	print type(d2)
 	D = np.diag(d2)
 	P = np.dot(inv(D), Knorm)
 
+
+	#Solution 2
+	# d2 = np.sum(Knorm, axis = 1)
+	# d3 = np.sqrt(d2)
+	# D = np.dot(d3[:,None],d3.transpose()[None,:])
+	# P = np.divide(Knorm, D)
+
 	# print ("\n Probability sums \n")
 	# for i in range(N):
-	# 	print sum(P[i,:])
+	# 	print sum(P[:,i])
 	# P is not symmetric!!!
 	return P
 
 def apply_svd(P):
 	# Apply SVD, return the 3 U, s, Vh matrices sorted by singular value descending
-	# return svd(P, full_matrices = True, compute_uv = True)
-	return scipysvd(P, full_matrices = True, compute_uv = True)
+	return svd(P, full_matrices = True, compute_uv = True)
+	# return scipysvd(P, full_matrices = True, computes_uv = True)
 
 def diff_mapping(s, V , n_components , steps):
 	diffMap = np.zeros((n_components, V.shape[0]))
@@ -154,7 +160,6 @@ def diff_mapping(s, V , n_components , steps):
 	# "+1" to start from right singular vector 1 
 	# until l+1, ignoring 0(1st singular value is equal to 1)
 	for i in range(n_components):
-		# print s[i+1]
 		diffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
 
 	return diffMap.transpose()

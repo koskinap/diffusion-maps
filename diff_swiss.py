@@ -20,9 +20,9 @@ np.set_printoptions(precision=10)
 
 def main():
 	#For testing purposes of the framework, a random dataset is generated.
-	dataMatrix, colors = make_swiss_roll(n_samples = 3000, noise = 0, random_state = None)
+	dataMatrix, colors = make_swiss_roll(n_samples = 1500, noise = 0, random_state = None)
 
-	diffusionMappings,ErrMessages = diffusion_framework(dataMatrix, n_components = 4, sigma = 1, steps = 1)
+	diffusionMappings,ErrMessages = diffusion_framework(dataMatrix, n_components = 4, sigma = 2, steps = 10)
 	if len(ErrMessages)>0:
 		for err in ErrMessages:
 			print err

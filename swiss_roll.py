@@ -43,9 +43,9 @@ def main():
 	visualisation(X, XdiffMap, Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, colors)
 
 
-def lle(X, color):
+def lle(data):
 	# print("Computing LLE embedding")
-	X_r, err = manifold.locally_linear_embedding(X, n_neighbors=5, n_components=2)
+	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=5, n_components=2)
 	# print("Done. Reconstruction error: %g" % err)
 	return X_r
 
