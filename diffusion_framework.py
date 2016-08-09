@@ -19,6 +19,7 @@ import pandas as pd
 
 from sklearn.utils.extmath import fast_dot
 from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.datasets import make_swiss_roll
 
 import matplotlib.cm as cm
@@ -29,9 +30,10 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 datasource = './data/'
 np.set_printoptions(precision=10)
 
-def main(X, kernel, n_components, sigma, steps, alpha):
+def main(X, kernel = 'gaussian', n_components =2, sigma = 1, steps = 1, alpha = 0.5):
 
 	ErrMessages = []
+
 	if not(isinstance(n_components, int) and n_components>0):
 		ErrMessages.append("Number of components should be a positive integer.")
 
@@ -44,28 +46,14 @@ def main(X, kernel, n_components, sigma, steps, alpha):
 	if not(alpha>=0 and alpha<=1):
 		ErrMessages.append("Alpha value should have a value in [0,1].")
 
-	if not(kernel in ['gaussian','cosine']):
-		ErrMessages.append("Kernel method should be gaussian or cosine")
+	if not(kernel in ['gaussian','cosine', 'polynomial']):
+		ErrMessages.append("Kernel method should be gaussian, polynomial or cosine")
 
 	if len(ErrMessages)>0:
 		return None, ErrMessages
 
 
-	dataMatrix = X
-
-	if kernel=='gaussian':
-		# Calculate a matrix which returns pairwise distances 
-		# between two datapoints according to a metric
-
-		# distMatrix = distance_matrix(dataMatrix)
-		# kernelMatrix = kernel_matrix(distMatrix, sigma, kernel)
-
-		# Choose a kernel function and create a kernel matrix
-		# with values according to a kernel function
-		kernelMatrix = kernel_matrix(dataMatrix, sigma, kernel)
-
-	elif kernel == 'cosine':
-		kernelMatrix = kernel_matrix(dataMatrix, sigma, kernel)
+	kernelMatrix = kernel_matrix(X, sigma, kernel)
 
 	# Create probability transition matrix from kernel matrix and total dist.
 	probMatrix = markov_chain(kernelMatrix, alpha)
@@ -73,8 +61,8 @@ def main(X, kernel, n_components, sigma, steps, alpha):
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
 	U, s, V = apply_svd(probMatrix)
-	# print("Singular values")
-	# print s
+	print("Singular values")
+	print s[1:]
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components: parameter is the number of the components we need our ampping to have
@@ -83,16 +71,9 @@ def main(X, kernel, n_components, sigma, steps, alpha):
 
 	diffusionMappings = diff_mapping(s, V, n_components, steps)
 	diffusionDistances = diffusion_distance(s, V, steps)
-	print diffusionDistances.shape
+
 	return diffusionMappings, ErrMessages
 
-# def distance_matrix(dataMatrix):
-# 	print("Calculating distance matrix. \n")
-
-# 	# Choose Euclidean distance
-# 	dMatrix = pairwise_distances(dataMatrix, metric = 'euclidean')
-
-# 	return dMatrix
 
 def kernel_matrix(X, sigma, kernel):
 
@@ -105,11 +86,8 @@ def kernel_matrix(X, sigma, kernel):
 	K = np.zeros((N, N))
 
 	if kernel == 'gaussian':
-		distMatrix = pairwise_distances(X, metric = 'euclidean')
-		# Define Gaussian kernel : exp(-(distMatrix[i, j]**2)/(2*(sigma**2)))
-		for i in range(N):
-			for j in range(N):
-				K[i, j] = exp(-(distMatrix[i, j]**2)/(2*(sigma**2)))
+		gamma = 0.5/sigma**2
+		K = rbf_kernel(X, gamma = gamma)
 	elif kernel=='cosine':
 		K = pairwise_distances(X, metric = kernel)
 
@@ -139,7 +117,6 @@ def markov_chain(K, alpha):
 	D = np.diag(d2)
 	P = np.dot(inv(D), Knorm)
 
-
 	#Solution 2 according to van Maaten, without probability matrix, on symmetric
 	# d2 = np.sum(Knorm, axis = 1)
 	# d3 = np.sqrt(d2)
@@ -150,6 +127,7 @@ def markov_chain(K, alpha):
 	# print ("\n Probability sums \n")
 	# for i in range(N):
 	# 	print sum(P[:,i])
+
 	# P is not symmetric!!!
 	return P
 
@@ -161,7 +139,7 @@ def apply_svd(P):
 def diff_mapping(s, V , n_components , steps):
 	diffMap = np.zeros((n_components, V.shape[0]))
 
-	# "+1" to start from right singular vector 1 
+	# "+1" to start from right singular vector 1 and value 
 	# until l+1, ignoring 0(1st singular value is equal to 1)
 	for i in range(n_components):
 		diffMap[i,:] = (s[i+1]**steps)*V[i+1,:]

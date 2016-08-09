@@ -13,6 +13,8 @@ from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
 
+from sklearn.metrics import r2_score
+
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
@@ -37,37 +39,51 @@ def main():
 
 	dtExcel = pd.ExcelFile(dtsource)
 
+	correlation = []
+
 	fig = plt.figure()
 
 	no = 331
 	inc = [0,1,2,1,2,1]
-
 	licycle = cycle(inc)
+
 	for bactName in sheetNames:
 		no += licycle.next()
 		worksheet = xlData.parse(bactName)
 
-		print('\nComputing embedding for')
+		print('\nComputing embedding for:')
 		print bactName
 
 		# Keep only the actual timeseries data, last 30 columns
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
 
-		# Perform dimensionality reduction, cho
+		# Perform dimensionality reduction, choose technique
 		# drX = mds(X)
 		# drX = laplacian_embedding(X)
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
 		# drX = lle(X)
-		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , n_components = 2, sigma = 0.4, steps = 1, alpha = 0.5)
+		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 0.4, n_components = 2, steps = 1, alpha = 0.5)
+		
+		# If one of the values of diffusion framework is not valid, 
+		# print error messages and exit
 		if len(ErrMessages)>0:
 			for err in ErrMessages:
 				print err
 			exit()
+
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()
 		scatterplot(drX, bactName, no, fig, dt)
+
+		# Store in a matrix the Prochlorococcus embedding.
+		# Store in another temporary matrix heterotrophic's embedding
+		# if bactName == 'Prochlorococcus':
+		# 	target = drX
+		# else:
+		# 	print r2_score(y_true = target, y_pred = drX)
+
 
 	plt.tight_layout()
 	plt.show()
