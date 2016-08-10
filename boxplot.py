@@ -23,11 +23,11 @@ originalDataSource = './data/Science_ortholog_cluster_counts_all_taxa.xlsx'
 
 datasource = './data/normalised/'
 filesource = ['RawData.xlsx','NormalisationData.xlsx','StandardisationData.xlsx', \
-'MinMaxScalerData.xlsx', 'sqrtData.xlsx','NormalisationByRowData.xlsx']
+'MinMaxScalerData.xlsx', 'sqrtData.xlsx','CustomNormalisationData.xlsx']
 dtsource = './data/datetimes.xlsx'
 
 titles = ['Original data', 'Normalised data', 'Standardised data', \
-'Scaled data with MinMaxScale','Square root divided by sum data','Normalisation by row']
+'Scaled data with MinMaxScale','Square root divided by sum data','Custom normalisation']
 
 def main():
 
@@ -39,9 +39,7 @@ def main():
 	dtArray = pd.DataFrame(pd.ExcelFile(dtsource).parse()).as_matrix().tolist()
 	dtList = []
 	for dt in dtArray:
-
 		dtList.append(dt[0])
-
 
 	for bactName in sheetNames:
 

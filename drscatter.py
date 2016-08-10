@@ -29,6 +29,11 @@ matplotlib.rcParams['legend.scatterpoints'] = 1
 
 datasource = './data/normalised/sqrtData.xlsx'
 # datasource = './data/normalised/NormalisationData.xlsx'
+# datasource = './data/normalised/CustomNormalisationData.xlsx'
+# datasource = './data/normalised/StandardisationData.xlsx'
+# datasource = './data/normalised/MinMaxScalerData.xlsx'
+# datasource = './data/normalised/rawData.xlsx'
+
 
 dtsource = './data/datetimes.xlsx'
 
@@ -51,8 +56,8 @@ def main():
 		no += licycle.next()
 		worksheet = xlData.parse(bactName)
 
-		print('\nComputing embedding for:')
-		print bactName
+		print('\nComputing embedding for:  ' + bactName)
+		# print bactName
 
 		# Keep only the actual timeseries data, last 30 columns
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
@@ -63,7 +68,7 @@ def main():
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
 		# drX = lle(X)
-		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 0.4, n_components = 2, steps = 1, alpha = 0.5)
+		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 0.5, n_components = 2, steps = 1, alpha = 0.5)
 		
 		# If one of the values of diffusion framework is not valid, 
 		# print error messages and exit

@@ -41,7 +41,7 @@ def main():
 
 	# Select scaling method between [MinMaxScaler, Standardisation ,Normalisation
 	 # sqrt,NormalisationByRow]
-	normMethod = 'NormalisationByRow'
+	normMethod = 'CustomNormalisation'
 
 	writer = pd.ExcelWriter('./data/normalised/' + normMethod + 'Data.xlsx')
 
@@ -57,24 +57,27 @@ def main():
 		print bactName
 		print worksheet.shape
 
+		Xnp = X.as_matrix()
 		# Normalise according to selected scaling method
 		if normMethod == 'MinMaxScaler':
-			normData = minMaxNormalisation(X.as_matrix())
+			normData = minMaxNormalisation(Xnp)
 
 		elif normMethod == 'Normalisation':
-			normData = normalisation(X.as_matrix(), 1)
+			normData = normalisation(Xnp, 1)
 		
 		elif normMethod == 'Standardisation':
-			normData = standarization(X.as_matrix())
+			normData = standarization(Xnp)
 
 		elif normMethod == 'sqrt':
-			normData = sqrt_normalisation(X.as_matrix())
+			normData = sqrt_normalisation(Xnp)
 
 		elif normMethod == 'NormalisationByRow':
-			normData = normalisation(X.as_matrix(), 0)
+			normData = normalisation(Xnp, 0)
 
+		elif normMethod == 'CustomNormalisation':
+			normData = custom_normalisation(Xnp)
 		else:
-			normData = X.as_matrix()
+			normData = Xnp
 
 		pd.DataFrame(normData).to_excel(writer, bactName)
 		
@@ -96,20 +99,56 @@ def sqrt_normalisation(data):
 	return norm_data
 
 
-def minMaxNormalisation(dataFrame):
+def minMaxNormalisation(data):
 	
 	min_max_scaler = preprocessing.MinMaxScaler()
-	tsScaled = min_max_scaler.fit_transform(dataFrame)
+	tsScaled = min_max_scaler.fit_transform(data)
 	dfNormalized = pd.DataFrame(tsScaled)
 
 	return dfNormalized
 
-def normalisation(dataFrame, axis):
-	return preprocessing.normalize(dataFrame, axis = axis)
+def normalisation(data, axis):
+	return preprocessing.normalize(data, axis = axis)
 
-def standarization(dataFrame):
+def custom_normalisation(data):
+
+	# this is close to stamdarization, no different results
+	Nexp = data.shape[0]
+	Ndt = data.shape[1]
+
+	normData = np.zeros((Nexp,Ndt))
+	nonZero = np.zeros(Ndt)
+	mean = np.zeros(Ndt)
+	std = np.zeros(Ndt)
+	tempsum = np.zeros(Ndt)
+	amax = np.zeros(Ndt)
+
+	for j in range(Ndt):
+		nonZero[j] = np.count_nonzero(data[:,j])
+		mean[j] = sum(data[:,j])/nonZero[j]
+		amax[j] = np.amax(data[:,j])
+		# print amax[j]
+		# print means[j]
+		for i in range(Nexp):
+			# Not to take into account zero elements
+			if data[i,j] != 0:
+				tempsum[j] += (data[i,j]-mean[j])**2
+
+		std[j] = sqrt(tempsum[j]/nonZero[j]) 
+		# print std[j]
+
+	for i in range(Nexp):
+		for j in range(Ndt):
+			normData[i,j] = (data[i,j]-mean[j])/std[j]
+			# normData[i,j] = (data[i,j]-mean[j])/amax[j]
+
+
+
+	return normData
+
+def standarization(data):
 	standardScaler = preprocessing.StandardScaler()
-	tsScaled = standardScaler.fit_transform(dataFrame)
+	tsScaled = standardScaler.fit_transform(data)
 	dfStandarized = pd.DataFrame(tsScaled)
 
 	return dfStandarized

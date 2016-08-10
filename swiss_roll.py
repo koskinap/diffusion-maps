@@ -25,29 +25,43 @@ def main():
 	#For testing purposes of the framework, a swiss roll dataset is generated.
 	X, colors = make_swiss_roll(n_samples = 1500, noise = 0, random_state = None)
 	
-	Xlle = lle(X, colors)
+	Xlle = lle(X)
+	Xlapl = laplacian_embedding(X)
+	Xisom = isomap(X)
+	XhesEig = hessian_eigen(X)
+
 	Xtsne = tsneVis(X)
 	Xpca = pca_function(X)
 	Xkpca = kernel_pca(X)
-	Xlapl = laplacian_embedding(X)
-	Xisom = isomap(X)
 	Xmds = mds(X)
 
-	XdiffMap,ErrMessages = diffusion_framework(X, kernel = 'gaussian' , n_components = 2, sigma = 1, steps = 1, alpha = 0.5)
-	if len(ErrMessages)>0:
-		for err in ErrMessages:
-			print err
-		exit()
+
+	# XdiffMap,ErrMessages = diffusion_framework(X, kernel = 'gaussian' , n_components = 2, sigma = 1, steps = 1, alpha = 0.5)
+	# if len(ErrMessages)>0:
+	# 	for err in ErrMessages:
+	# 		print err
+	# 	exit()
 	
 	#Call Visualisation function
-	visualisation(X, XdiffMap, Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, colors)
+	# visualisation(Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, Xhess, colors)
+
+	visualisation(X, colors)
+	visualisation2(Xpca, Xkpca, Xmds, Xtsne, colors)
+	visualisation3(Xlle, Xlapl, Xisom, XhesEig, colors)
+
 
 
 def lle(data):
 	# print("Computing LLE embedding")
-	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=5, n_components=2)
+	Xemb, err = manifold.locally_linear_embedding(data, n_neighbors=12, n_components=2)
 	# print("Done. Reconstruction error: %g" % err)
-	return X_r
+	return Xemb
+
+def hessian_eigen(data):
+	# print("Computing LLE embedding")
+	XhesEig, err = manifold.locally_linear_embedding(data, method = 'hessian' , n_neighbors=12, n_components=2)
+	# print("Done. Reconstruction error: %g" % err)
+	return XhesEig
 
 def tsneVis(data):
 	tsne = manifold.TSNE(n_components=2, random_state=0)
@@ -74,57 +88,91 @@ def mds(data):
 	mdsm = manifold.MDS(n_components =2)
 	return mdsm.fit_transform(data)
 
-	
-def visualisation(X, XdiffMap, Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, color):
 
+
+def visualisation2(Xpca, Xkpca, Xmds, Xtsne, color):
 	fig = plt.figure()
-	# try:
-	#     ax = fig.add_subplot(331, projection='3d')
-	#     ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap=plt.cm.Spectral)
-	# except:
-	#     ax = fig.add_subplot(331)
-	#     ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
-	ax = fig.add_subplot(331)
-	ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
 
-	ax.set_title("Original data")
+	ax = fig.add_subplot(221)
+	ax.scatter(Xpca[:, 0], Xpca[:, 1], c=color, cmap=plt.cm.Spectral)
+	ax.set_xlabel('Principal Component 1')
+	ax.set_ylabel('Principal Component 2')
+	plt.title('Projected data on PCA space')
 
-	ax = fig.add_subplot(332)
-	ax.scatter(XdiffMap[:, 0], XdiffMap[:, 1], c=color, cmap=plt.cm.Spectral)
-	
-	plt.title('Projected data on diffusion mappings space')
+	ax = fig.add_subplot(222)
+	ax.scatter(Xkpca[:, 0], Xkpca[:, 1], c=color, cmap=plt.cm.Spectral)
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 2')
+	plt.title('Projected data on kernel PCA space')
 
+	ax = fig.add_subplot(223)
+	ax.scatter(Xmds[:, 0], Xmds[:, 1], c=color, cmap=plt.cm.Spectral)
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 2')
+	plt.title('Projected by MDS')
 
-	ax = fig.add_subplot(333)
-	ax.scatter(Xlle[:, 0], Xlle[:, 1], c=color, cmap=plt.cm.Spectral)
-	plt.title('Projected data on lle space')
-
-	ax = fig.add_subplot(334)
-	ax.scatter(Xlle[:, 0], Xlle[:, 1], c=color, cmap=plt.cm.Spectral)
+	ax = fig.add_subplot(224)
+	ax.scatter(Xtsne[:, 0], Xtsne[:, 1], c=color, cmap=plt.cm.Spectral)
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 2')
 	plt.title('Projected data on t-SNE space')
 
 
-	ax = fig.add_subplot(335)
-	ax.scatter(Xpca[:, 0], Xpca[:, 1], c=color, cmap=plt.cm.Spectral)
-	plt.title('Projected data on PCA space')
+	plt.xticks([]), plt.yticks([])
+	plt.axis('tight')
+	plt.show()
+	
 
-	ax = fig.add_subplot(336)
-	ax.scatter(Xkpca[:, 0], Xkpca[:, 1], c=color, cmap=plt.cm.Spectral)
-	plt.title('Projected data on kernel PCA space')
 
-	ax = fig.add_subplot(337)
+
+def visualisation3(Xlle, Xlapl, Xisom, XhesEig,  color):
+	fig = plt.figure()
+
+	ax = fig.add_subplot(221)
+	ax.scatter(Xlle[:, 0], Xlle[:, 1], c=color, cmap=plt.cm.Spectral)
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 2')
+	plt.title('Projected data on Local Linear Emdbeddings space')
+
+	ax = fig.add_subplot(222)
 	ax.scatter(Xlapl[:, 0], Xlapl[:, 1], c=color, cmap=plt.cm.Spectral)
-	plt.title('Projected data on laplacian embedding space')
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 2')	
+	plt.title('Projected data on Laplacian Eigenmaps embedding space')
 
 
-	ax = fig.add_subplot(338)
+	ax = fig.add_subplot(223)
 	ax.scatter(Xisom[:, 0], Xisom[:, 1], c=color, cmap=plt.cm.Spectral)
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 2')
 	plt.title('Projected data on Isomap embedding space')
 
-	ax = fig.add_subplot(339)
-	ax.scatter(Xmds[:, 0], Xmds[:, 1], c=color, cmap=plt.cm.Spectral)
-	plt.title('Projected by MDS')
 
+	ax = fig.add_subplot(224)
+	ax.scatter(XhesEig[:, 0], XhesEig[:, 1], c=color, cmap=plt.cm.Spectral)
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 2')
+	plt.title('Projected data on Hessian Eigenmappings space')
+
+	plt.xticks([]), plt.yticks([])
+	plt.axis('tight')
+	plt.show()
+	
+
+def visualisation(X, color):
+
+	fig = plt.figure()
+	
+	try:
+	    ax = fig.add_subplot(111, projection='3d')
+	    ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap=plt.cm.Spectral)
+	except:
+	    ax = fig.add_subplot(111)
+	    ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
+
+	# ax = fig.add_subplot(111)
+	# ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
+	# ax.set_title("Original data")
 
 	plt.xticks([]), plt.yticks([])
 	plt.axis('tight')

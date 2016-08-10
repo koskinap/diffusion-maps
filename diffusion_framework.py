@@ -61,8 +61,12 @@ def main(X, kernel = 'gaussian', n_components =2, sigma = 1, steps = 1, alpha = 
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
 	U, s, V = apply_svd(probMatrix)
-	print("Singular values")
-	print s[1:]
+	print("Singular values: ")
+	print s[1:5]
+	# print s
+	print("Singular values on the power of steps: ")
+	print s[1:5]**steps
+
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components: parameter is the number of the components we need our ampping to have
@@ -126,7 +130,7 @@ def markov_chain(K, alpha):
 	# Make sure total sum of each row is equal to 1
 	# print ("\n Probability sums \n")
 	# for i in range(N):
-	# 	print sum(P[:,i])
+	# 	print sum(P[i,:])
 
 	# P is not symmetric!!!
 	return P
@@ -150,7 +154,7 @@ def diffusion_distance(s, V, steps):
 	N = V.shape[0]
 	tDiffMap = np.zeros((N-1, N))
 
-	# "+1" to start from right singular vector 1 
+	# "+1" to start from right singular vector #1(not 0) 
 	# until l+1, ignoring 0(1st singular value is equal to 1)
 	for i in range(N-1):
 		tDiffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
