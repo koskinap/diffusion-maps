@@ -68,7 +68,7 @@ def main():
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
 		# drX = lle(X)
-		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 0.5, n_components = 2, steps = 1, alpha = 0.5)
+		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 0.15, n_components = 2, steps = 5, alpha = 0.5)
 		
 		# If one of the values of diffusion framework is not valid, 
 		# print error messages and exit

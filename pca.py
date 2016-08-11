@@ -28,6 +28,8 @@ matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
 
 datasource = './data/normalised/sqrtData.xlsx'
+# datasource = './data/normalised/CustomNormalisationData.xlsx'
+
 dtsource = './data/datetimes.xlsx'
 
 

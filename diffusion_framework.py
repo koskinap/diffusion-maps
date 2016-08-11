@@ -62,10 +62,10 @@ def main(X, kernel = 'gaussian', n_components =2, sigma = 1, steps = 1, alpha = 
 	# U,V are expected to be square matrices
 	U, s, V = apply_svd(probMatrix)
 	print("Singular values: ")
-	print s[1:5]
+	print s[0:5]
 	# print s
 	print("Singular values on the power of steps: ")
-	print s[1:5]**steps
+	print s[0:5]**steps
 
 
 	# Define the diffusion mapping which will be used to represent the data
@@ -101,27 +101,46 @@ def kernel_matrix(X, sigma, kernel):
 def markov_chain(K, alpha):
 	print("Calculating Markov chain matrix. \n")
 
-	# Initialise NxN probability transition matrix
+	# Initialise matrices
 	N = K.shape[0]
 	P = np.zeros((N,N))
 	d = np.sum(K, axis = 1)
-
-	# Normalise distances by converting to probabilities by 
-	# dividing with total distance to each node of the graph
 	d2 = np.zeros(N)
 	Knorm = np.zeros((N,N))
 	Dnorm = np.zeros((N,N))
-	
+
+	# Normalise distances by converting to probabilities by 
+	# dividing with total distance to each node of the graph
+
+
+	# Solution 1, Kernel normalisation and dividing by row sum
+
 	Dtemp = np.diag(d)
 	np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal()**alpha))
 	Knorm = np.dot(Dnorm, K).dot(Dnorm)
-
-	# Solution 1
+	
 	d2 = np.sum(Knorm, axis = 1)
 	D = np.diag(d2)
 	P = np.dot(inv(D), Knorm)
 
-	#Solution 2 according to van Maaten, without probability matrix, on symmetric
+
+	# testing symmetricity
+
+	# print sum(K[3,:])
+	# print sum(K[:,3])
+	# print sum(Knorm[3,:])
+	# print sum(Knorm[:,3])
+
+	# print K[5,25], K[25,5]
+	# print Knorm[5,25], Knorm[25,5]
+	
+
+	# Solution 2 without kernel normalisation
+	# d2 = np.sum(K, axis = 1)	
+	# D = np.diag(d2)
+	# P = np.dot(inv(D), K)
+
+	#Solution 3 according to van Maaten, without probability matrix, on symmetric
 	# d2 = np.sum(Knorm, axis = 1)
 	# d3 = np.sqrt(d2)
 	# D = np.dot(d3[:,None],d3.transpose()[None,:])

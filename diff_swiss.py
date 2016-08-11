@@ -22,7 +22,7 @@ def main():
 	#For testing purposes of the framework, a random dataset is generated.
 	dataMatrix, colors = make_swiss_roll(n_samples = 1500, noise = 0.1, random_state = None)
 
-	diffusionMappings,ErrMessages = diffusion_framework(dataMatrix, kernel = 'gaussian', n_components = 4, sigma = 1, steps = 10, alpha = 0.5)
+	diffusionMappings,ErrMessages = diffusion_framework(dataMatrix, kernel = 'gaussian', n_components = 4, sigma = 1, steps = 1, alpha = 0.5)
 	if len(ErrMessages)>0:
 		for err in ErrMessages:
 			print err
@@ -45,6 +45,8 @@ def visualisation(X, XdiffMap, color):
 	ax.set_title("Original data")
 
 	ax = fig.add_subplot(222)
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 2')
 	ax.scatter(XdiffMap[:, 0], XdiffMap[:, 1], c=color, cmap=plt.cm.Spectral)
 
 	plt.title('Projected data on diffusion coordinates 1-2')
@@ -52,10 +54,14 @@ def visualisation(X, XdiffMap, color):
 
 	ax = fig.add_subplot(223)
 	ax.scatter(XdiffMap[:, 0], XdiffMap[:, 2], c=color, cmap=plt.cm.Spectral)
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 3')
 	plt.title('Projected data on diffusion coordinates 1-3')
 
 	ax = fig.add_subplot(224)
 	ax.scatter(XdiffMap[:, 0], XdiffMap[:, 3], c=color, cmap=plt.cm.Spectral)
+	ax.set_xlabel('Coordinate 1')
+	ax.set_ylabel('Coordinate 4')
 	plt.title('Projected data on diffusion coordinates 1-4')
 
 
