@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 
 from sklearn.datasets import make_swiss_roll
-from sklearn import manifold, datasets
+from sklearn.datasets import make_s_curve
+
+from sklearn import manifold
 
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -21,6 +23,8 @@ np.set_printoptions(precision=10)
 def main():
 	#For testing purposes of the framework, a random dataset is generated.
 	dataMatrix, colors = make_swiss_roll(n_samples = 1500, noise = 0.1, random_state = None)
+	# dataMatrix, colors = make_s_curve(n_samples = 1000, noise = 0.1, random_state = None)
+	
 
 	diffusionMappings,ErrMessages = diffusion_framework(dataMatrix, kernel = 'gaussian', n_components = 4, sigma = 1, steps = 1, alpha = 0.5)
 	if len(ErrMessages)>0:
@@ -65,7 +69,7 @@ def visualisation(X, XdiffMap, color):
 	plt.title('Projected data on diffusion coordinates 1-4')
 
 
-	plt.xticks([]), plt.yticks([])
+	# plt.xticks([]), plt.yticks([])
 	plt.axis('tight')
 	plt.show()
 

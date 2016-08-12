@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from sklearn.datasets import make_swiss_roll
+from sklearn.datasets import make_s_curve
 from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
@@ -24,7 +25,9 @@ def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
 	X, colors = make_swiss_roll(n_samples = 1500, noise = 0, random_state = None)
-	
+	# X, colors = make_s_curve(n_samples = 1500, noise = 0.1, random_state = None)
+
+
 	Xlle = lle(X)
 	Xlapl = laplacian_embedding(X)
 	Xisom = isomap(X)
@@ -118,7 +121,7 @@ def visualisation2(Xpca, Xkpca, Xmds, Xtsne, color):
 	plt.title('Projected data on t-SNE space')
 
 
-	plt.xticks([]), plt.yticks([])
+	# plt.xticks([]), plt.yticks([])
 	plt.axis('tight')
 	plt.show()
 	
@@ -154,7 +157,7 @@ def visualisation3(Xlle, Xlapl, Xisom, XhesEig,  color):
 	ax.set_ylabel('Coordinate 2')
 	plt.title('Projected data on Hessian Eigenmappings space')
 
-	plt.xticks([]), plt.yticks([])
+	# plt.xticks([]), plt.yticks([])
 	plt.axis('tight')
 	plt.show()
 	
@@ -174,7 +177,7 @@ def visualisation(X, color):
 	# ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
 	# ax.set_title("Original data")
 
-	plt.xticks([]), plt.yticks([])
+	# plt.xticks([]), plt.yticks([])
 	plt.axis('tight')
 	plt.show()
 	
