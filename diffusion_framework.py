@@ -20,6 +20,9 @@ import pandas as pd
 from sklearn.utils.extmath import fast_dot
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.metrics.pairwise import laplacian_kernel
+from sklearn.metrics.pairwise import linear_kernel
+from sklearn.metrics.pairwise import polynomial_kernel
 from sklearn.datasets import make_swiss_roll
 
 import matplotlib.cm as cm
@@ -28,32 +31,38 @@ from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
 
 datasource = './data/'
-np.set_printoptions(precision=10)
+np.set_printoptions(precision=8)
 
-def main(X, kernel = 'gaussian', n_components =2, sigma = 1, steps = 1, alpha = 0.5):
+def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0.5, pkDegree = 3, c0 = 1):
 
 	ErrMessages = []
 
 	if not(isinstance(n_components, int) and n_components>0):
-		ErrMessages.append("Number of components should be a positive integer.")
+		ErrMessages.append("Number of components must be a positive integer.")
 
 	if not(isinstance(steps, int) and steps>0):
-		ErrMessages.append("Number of steps on Markov chain should be a positive integer.")
+		ErrMessages.append("Number of steps on Markov chain must be a positive integer.")
 	
 	if not(sigma>0):
-		ErrMessages.append("Sigma value should be a positive number.")
+		ErrMessages.append("Sigma must should be a positive number.")
 
 	if not(alpha>=0 and alpha<=1):
-		ErrMessages.append("Alpha value should have a value in [0,1].")
+		ErrMessages.append("Alpha value must have a value in [0,1].")
 
-	if not(kernel in ['gaussian','cosine', 'polynomial']):
-		ErrMessages.append("Kernel method should be gaussian, polynomial or cosine")
+	if not(isinstance(pkDegree, int) and pkDegree>0):
+		ErrMessages.append("Degree of kernel must be a positive integer.")
+	
+	if not(isinstance(c0, int) and c0>0):
+		ErrMessages.append("Coefficient value must be a positive integer.")
+
+	if not(kernel in ['gaussian','laplacian','linear','polynomial']):
+		ErrMessages.append("Kernel method must be gaussian, linear, polynomial or laplacian")
 
 	if len(ErrMessages)>0:
 		return None, ErrMessages
 
 
-	kernelMatrix = kernel_matrix(X, sigma, kernel)
+	kernelMatrix = kernel_matrix(X, sigma, kernel, pkDegree, c0)
 
 	# Create probability transition matrix from kernel matrix and total dist.
 	probMatrix = markov_chain(kernelMatrix, alpha)
@@ -79,7 +88,7 @@ def main(X, kernel = 'gaussian', n_components =2, sigma = 1, steps = 1, alpha = 
 	return diffusionMappings, ErrMessages
 
 
-def kernel_matrix(X, sigma, kernel):
+def kernel_matrix(X, sigma, kernel, pkDegree, c0):
 
 	print("Calculating Kernel matrix")
 
@@ -92,8 +101,13 @@ def kernel_matrix(X, sigma, kernel):
 	if kernel == 'gaussian':
 		gamma = 0.5/sigma**2
 		K = rbf_kernel(X, gamma = gamma)
-	elif kernel=='cosine':
-		K = pairwise_distances(X, metric = kernel)
+	elif kernel == 'laplacian':
+		gamma = 1/(2*sigma)
+		K = laplacian_kernel(X, gamma = gamma)
+	elif kernel == 'linear':
+		K = linear_kernel(X)
+	elif kernel == 'polynomial':
+		K = polynomial_kernel(X, degree = pkDegree, coef0 = c0 )
 
 	return K
 
