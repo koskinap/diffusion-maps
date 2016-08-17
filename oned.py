@@ -13,6 +13,9 @@ from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
 
+from sklearn.metrics import r2_score
+from datetime import datetime
+
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
@@ -20,10 +23,11 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from diffusion_framework import main as diffusion_framework
 
+from itertools import cycle
+
 matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
 
-# Choose set of normalised data
 # datasource = './data/normalised/sqrtData.xlsx'
 # datasource = './data/normalised/NormalisationData.xlsx'
 # datasource = './data/normalised/CustomNormalisationData.xlsx'
@@ -41,14 +45,12 @@ def main():
 
 	dtExcel = pd.ExcelFile(dtsource)
 
-	fig = plt.figure()
-	no = 331
+	correlation = []
 
 	for bactName in sheetNames:
 		worksheet = xlData.parse(bactName)
 
 		print('\nComputing embedding for:  ' + bactName)
-		# print bactName
 
 		# Keep only the actual timeseries data, last 30 columns
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
@@ -60,9 +62,9 @@ def main():
 		# drX = isomap(X)
 		# drX = lle(X)
 
-		# Diffusion framework block start
 		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 4, \
-		 n_components = 2, steps = 1, alpha = 0.5)
+		 n_components = 2, steps = 1, alpha = 0)
+
 		
 		# If one of the values of diffusion framework is not valid, 
 		# print error messages and exit
@@ -70,23 +72,15 @@ def main():
 			for err in ErrMessages:
 				print err
 			exit()
-		# Diffusion framework block end
 
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()
+		# oned(drX,bactName)
+		scatterplot(drX,bactName, dt)
 
-		scatterplot(drX, bactName, no, fig, dt)
 
-		no+=1
-
-	plt.tight_layout()
-	plt.show()
-
-def  scatterplot(X, bactName, no, fig, datetimes):
-
-	# Create a custom set of markers with custom colours to reproduce results
-	 # of previous research and compare after dimensionality reduction
+def oned(X,bactName):
 	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
 	'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', \
 	'^', '^', '^', '^', '+']
@@ -96,23 +90,56 @@ def  scatterplot(X, bactName, no, fig, datetimes):
 	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
 	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
 
-	ax = fig.add_subplot(no)
+	fig = plt.figure()
+	ax = fig.add_subplot(111)
+
+	points = []
+	
+	for m, c, i in zip(markers, colors, X[:,0]):
+		points.append(ax.scatter(i, 0, s = 50, marker=m, c=c))
+
+	plt.title(bactName)
+	plt.show()
+
+
+def  scatterplot(X, bactName, datetimes):
+
+	# Create a custom set of markers with custom colours to reproduce results
+	# of previous research and compare after dimensionality reduction
+	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
+	'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', \
+	'^', '^', '^', '^', '+']
+
+	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
+	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
+	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
+	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
+
+	fig = plt.figure()
+
+	ax = fig.add_subplot(111, projection='3d')
 	ax.set_title(bactName)
 	points = []
 	names = []
+	date_object = []
+	times = []
 
 	for name_arr in datetimes.tolist():
+		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
 		names.append(name_arr[0])
 
-	for m, c, i, j in zip(markers, colors, X[:,0], X[:,1]):
-		points.append(ax.scatter(i, j, s = 50, marker=m, c=c))
+	for i in date_object:
+		times.append(int(i.hour))
 
-	fig.legend(points, names, 'lower center', ncol=5)
+	w = 0.0004
+	ax.bar(X[:,0].tolist(),times, zs=X[:,1].tolist(), zdir='y', width=w, color=colors, alpha = 0.6)
 
-	plt.xlabel('Component 1')
-	plt.ylabel('Component 2')
 
-	return fig
+	ax.set_xlabel('X')
+	ax.set_ylabel('Y')
+	ax.set_zlabel('Z')
+
+	plt.show()
 
 
 def lle(data):

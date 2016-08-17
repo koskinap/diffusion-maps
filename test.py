@@ -13,3 +13,5 @@ from scipy.linalg import svd as scipysvd
 
 import pandas as pd
 
+import matplotlib.pyplot as plt
+

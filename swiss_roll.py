@@ -1,4 +1,4 @@
-# Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
+ #  Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
 # Scipt 4: Visualise and test diffusion maps on Swiss Roll Dataset 
@@ -24,7 +24,7 @@ datasource = './data/'
 def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
-	X, colors = make_swiss_roll(n_samples = 1500, noise = 0, random_state = None)
+	X, colors = make_swiss_roll(n_samples = 1500, noise = 0.1, random_state = None)
 	# X, colors = make_s_curve(n_samples = 1500, noise = 0.1, random_state = None)
 
 
@@ -45,9 +45,7 @@ def main():
 	# 		print err
 	# 	exit()
 	
-	#Call Visualisation function
-	# visualisation(Xlle, Xtsne, Xpca, Xkpca, Xlapl, Xisom, Xmds, Xhess, colors)
-
+	#Call Visualisation functions
 	visualisation(X, colors)
 	visualisation2(Xpca, Xkpca, Xmds, Xtsne, colors)
 	visualisation3(Xlle, Xlapl, Xisom, XhesEig, colors)
@@ -55,9 +53,7 @@ def main():
 
 
 def lle(data):
-	# print("Computing LLE embedding")
 	Xemb, err = manifold.locally_linear_embedding(data, n_neighbors=12, n_components=2)
-	# print("Done. Reconstruction error: %g" % err)
 	return Xemb
 
 def hessian_eigen(data):
@@ -92,7 +88,6 @@ def mds(data):
 	return mdsm.fit_transform(data)
 
 
-
 def visualisation2(Xpca, Xkpca, Xmds, Xtsne, color):
 	fig = plt.figure()
 
@@ -100,32 +95,28 @@ def visualisation2(Xpca, Xkpca, Xmds, Xtsne, color):
 	ax.scatter(Xpca[:, 0], Xpca[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Principal Component 1')
 	ax.set_ylabel('Principal Component 2')
-	plt.title('Projected data on PCA space')
+	plt.title('a. Projected data using PCA')
 
 	ax = fig.add_subplot(222)
 	ax.scatter(Xkpca[:, 0], Xkpca[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')
-	plt.title('Projected data on kernel PCA space')
+	plt.title('b. Projected data using kernel PCA')
 
 	ax = fig.add_subplot(223)
 	ax.scatter(Xmds[:, 0], Xmds[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')
-	plt.title('Projected by MDS')
+	plt.title('c. Visualised using MDS')
 
 	ax = fig.add_subplot(224)
 	ax.scatter(Xtsne[:, 0], Xtsne[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')
-	plt.title('Projected data on t-SNE space')
+	plt.title('d. Visualised using t-SNE')
 
-
-	# plt.xticks([]), plt.yticks([])
 	plt.axis('tight')
 	plt.show()
-	
-
 
 
 def visualisation3(Xlle, Xlapl, Xisom, XhesEig,  color):
@@ -135,29 +126,28 @@ def visualisation3(Xlle, Xlapl, Xisom, XhesEig,  color):
 	ax.scatter(Xlle[:, 0], Xlle[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')
-	plt.title('Projected data on Local Linear Emdbeddings space')
+	plt.title('a. Local Linear Embeddings')
 
 	ax = fig.add_subplot(222)
 	ax.scatter(Xlapl[:, 0], Xlapl[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')	
-	plt.title('Projected data on Laplacian Eigenmaps embedding space')
+	plt.title('b. Laplacian Eigenmappings')
 
 
 	ax = fig.add_subplot(223)
 	ax.scatter(Xisom[:, 0], Xisom[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')
-	plt.title('Projected data on Isomap embedding space')
+	plt.title('c. Isometric Feature Mappings')
 
 
 	ax = fig.add_subplot(224)
 	ax.scatter(XhesEig[:, 0], XhesEig[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')
-	plt.title('Projected data on Hessian Eigenmappings space')
+	plt.title('d. Hessian Eigenmappings')
 
-	# plt.xticks([]), plt.yticks([])
 	plt.axis('tight')
 	plt.show()
 	
@@ -173,11 +163,6 @@ def visualisation(X, color):
 	    ax = fig.add_subplot(111)
 	    ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
 
-	# ax = fig.add_subplot(111)
-	# ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
-	# ax.set_title("Original data")
-
-	# plt.xticks([]), plt.yticks([])
 	plt.axis('tight')
 	plt.show()
 	

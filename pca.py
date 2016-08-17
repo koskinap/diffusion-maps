@@ -16,20 +16,13 @@ import matplotlib.gridspec as gridspec
 
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
-from sklearn.metrics import r2_score
-
-from scipy.stats import pearsonr
-from numpy import corrcoef
 
 import datetime
-from itertools import cycle
 
 matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
 
 datasource = './data/normalised/sqrtData.xlsx'
-# datasource = './data/normalised/CustomNormalisationData.xlsx'
-
 dtsource = './data/datetimes.xlsx'
 
 
@@ -42,10 +35,6 @@ def main():
 
 	# writer = pd.ExcelWriter('./data/pcaData.xlsx')
 	fig = plt.figure()
-
-	no = 331
-	inc = [0,1,2,1,2,1]
-	licycle = cycle(inc)
 	
 	for bactName in sheetNames:
 		no += licycle.next()
@@ -61,17 +50,7 @@ def main():
 		# Perform PCA on Data
 		pca = PCA(n_components = 2, whiten = True)
 		XTransposedPca = pca.fit_transform(XTransposed)
-		# scatterplot(XTransposedPca)
 		scatterplot2(XTransposedPca, bactName, no, fig, dt)
-
-
-		# if bactName == 'Prochlorococcus':
-		# 	target = XTransposedPca
-		# else:
-		# 	print r2_score(y_true = target, y_pred = XTransposedPca, multioutput='raw_values')
-		# 	# print r2_score(y_true = XTransposedPca.transpose(), y_pred = target, multioutput = 'variance_weighted')
-		# 	# print (pearsonr(target[:,0], XTransposedPca[:,0])[1]*pearsonr(target[:,1], XTransposedPca[:,1])[1]
-		# 	# corrcoef
 
 
 	plt.tight_layout()

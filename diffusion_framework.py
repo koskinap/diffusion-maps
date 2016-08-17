@@ -70,11 +70,11 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 	# Returns SVD decomposition, s is the vector of singular values
 	# U,V are expected to be square matrices
 	U, s, V = apply_svd(probMatrix)
-	print("Singular values: ")
-	print s[0:5]
-	# print s
-	print("Singular values on the power of steps: ")
-	print s[0:5]**steps
+	# print("Singular values: ")
+	# print s[1:8]
+	# # print s
+	# print("Singular values on the power of steps: ")
+	# print s[1:8]**steps
 
 
 	# Define the diffusion mapping which will be used to represent the data
@@ -179,7 +179,10 @@ def diff_mapping(s, V , n_components , steps):
 	# "+1" to start from right singular vector 1 and value 
 	# until l+1, ignoring 0(1st singular value is equal to 1)
 	for i in range(n_components):
+		# print V[i+1,:]
 		diffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
+		# print diffMap[i,:]
+
 
 	return diffMap.transpose()
 
