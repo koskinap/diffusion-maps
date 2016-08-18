@@ -27,7 +27,7 @@ def main():
 	
 
 	diffusionMappings,ErrMessages = diffusion_framework(dataMatrix, kernel = 'gaussian', \
-		n_components = 4, sigma = 1, steps = 300, alpha = 0.5)
+		n_components = 4, sigma = 1, steps = 1, alpha = 0.5)
 	if len(ErrMessages)>0:
 		for err in ErrMessages:
 			print err
