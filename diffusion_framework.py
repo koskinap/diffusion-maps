@@ -31,8 +31,7 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
 
-datasource = './data/'
-np.set_printoptions(precision=8)
+np.set_printoptions(precision=10)
 
 def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0.5, pkDegree = 3, c0 = 1):
 
@@ -62,19 +61,28 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 	if len(ErrMessages)>0:
 		return None, ErrMessages
 
+	# Set sigma
+	# distanceMatrix = pairwise_distances(X, metric = 'sqeuclidean')
+
+	# d = distanceMatrix.flatten()
+
+	# sigma = sqrt(np.median(d)/2)
+	# print sigma
 
 	kernelMatrix = kernel_matrix(X, sigma, kernel, pkDegree, c0)
 
 	# Create probability transition matrix from kernel matrix and total dist.
 	probMatrix = markov_chain(kernelMatrix, alpha)
 
-	# Returns EVD decomposition, s is the vector of singular values
-	# U,V are expected to be square matrices
-	w, v  = eig(probMatrix)
+	# Returns EVD decomposition, w are the unsorted eigenvalues, 
+	# V is a matrix that in V[:, i+1] has the corresponding eigenvector of w[i]
+	w, V = eig(probMatrix)
 
+	# Sort accoidingly in the decreasing order of eigenvalues the eigenvectors
 	idx = w.argsort()[::-1]   
 	eigValues = w[idx]
-	eigVectors = v[:,idx]
+	# print eigValues
+	eigVectors = V[:,idx]
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components: parameter is the number of the components we need our ampping to have
@@ -82,7 +90,7 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 	# Their values is a matter of research
 
 	diffusionMappings = diff_mapping(eigValues, eigVectors, n_components, steps)
-	# diffusionDistances = diffusion_distance(w, v, steps)
+	# diffusionDistances = diffusion_distance(w, V, steps)
 
 
 	return diffusionMappings, ErrMessages
@@ -135,10 +143,6 @@ def markov_chain(K, alpha):
 	# P is not symmetric!!!
 	return P
 
-def apply_svd(P):
-	# Apply SVD, return the 3 U, s, Vh matrices sorted by singular value descending
-	return svd(P, full_matrices = True, compute_uv = True)
-	# return scipysvd(P, full_matrices = True, computes_uv = True)
 
 def diff_mapping(eigenValues, eigenVectors, n_components , steps):
 	diffMap = np.zeros((n_components, eigenVectors.shape[0]))
@@ -151,15 +155,15 @@ def diff_mapping(eigenValues, eigenVectors, n_components , steps):
 	return diffMap.transpose()
 
 
-def diffusion_distance(s, V, steps):
-	N = V.shape[0]
+def diffusion_distance(eigenValues, eigenVectors, steps):
+	N = eigenVectors.shape[0]
 	tDiffMap = np.zeros((N-1, N))
 
 	# "+1" to start from right eigenvector #1(not 0) 
 	# until l+1, ignoring 0(1st eigenvector value is equal to 1)
 	for i in range(N-1):
-		tDiffMap[i,:] = (s[i+1]**steps)*V[i+1,:]
-	
+		tDiffMap[i,:] = (eigenValues[i+1]**steps)*eigenVectors[:,i+1]
+
 	fullDiffMap = tDiffMap.transpose()
 
 	diffDist = pairwise_distances(fullDiffMap, metric = 'euclidean')

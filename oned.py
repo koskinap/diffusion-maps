@@ -62,8 +62,8 @@ def main():
 		# drX = isomap(X)
 		# drX = lle(X)
 
-		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 4, \
-		 n_components = 2, steps = 1, alpha = 0)
+		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 1, \
+		 n_components = 2, steps = 1, alpha = 0.8)
 
 		
 		# If one of the values of diffusion framework is not valid, 

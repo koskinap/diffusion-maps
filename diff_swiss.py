@@ -70,7 +70,6 @@ def visualisation(X, XdiffMap, color):
 	plt.title('Projected data on diffusion coordinates 1-4')
 
 
-	# plt.xticks([]), plt.yticks([])
 	plt.axis('tight')
 	plt.show()
 

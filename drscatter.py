@@ -55,21 +55,21 @@ def main():
 
 		# Perform dimensionality reduction, choose technique
 		# drX = mds(X)
-		# drX = laplacian_embedding(X)
+		drX = laplacian_embedding(X)
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
 		# drX = lle(X)
 
 		# Diffusion framework block start
-		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 4, \
-		 n_components = 2, steps = 1, alpha = 0.5)
+		# drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 0.7069, \
+		#  n_components = 2, steps = 2, alpha = 0.5)
 		
-		# If one of the values of diffusion framework is not valid, 
-		# print error messages and exit
-		if len(ErrMessages)>0:
-			for err in ErrMessages:
-				print err
-			exit()
+		# # If one of the values of diffusion framework is not valid, 
+		# # print error messages and exit
+		# if len(ErrMessages)>0:
+		# 	for err in ErrMessages:
+		# 		print err
+		# 	exit()
 		# Diffusion framework block end
 
 		# Read time-date from file

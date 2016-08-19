@@ -57,9 +57,7 @@ def lle(data):
 	return Xemb
 
 def hessian_eigen(data):
-	# print("Computing LLE embedding")
 	XhesEig, err = manifold.locally_linear_embedding(data, method = 'hessian' , n_neighbors=12, n_components=2)
-	# print("Done. Reconstruction error: %g" % err)
 	return XhesEig
 
 def tsneVis(data):
