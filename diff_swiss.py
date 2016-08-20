@@ -26,13 +26,8 @@ def main():
 	# dataMatrix, colors = make_s_curve(n_samples = 1000, noise = 0.1, random_state = None)
 	
 
-	diffusionMappings,ErrMessages = diffusion_framework(dataMatrix, kernel = 'gaussian', \
-		n_components = 4, sigma = 1, steps = 1, alpha = 0.5)
-	if len(ErrMessages)>0:
-		for err in ErrMessages:
-			print err
-		exit()
-
+	diffusionMappings = diffusion_framework(dataMatrix, kernel = 'gaussian', \
+		n_components = 4, sigma = 1, steps = 1, alpha = 0)
 
 	visualisation(dataMatrix, diffusionMappings, colors)
 

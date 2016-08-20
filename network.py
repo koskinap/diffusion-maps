@@ -18,6 +18,8 @@ from sklearn.metrics.pairwise import rbf_kernel
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
+import networkx as nx
+
 
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 from mpl_toolkits.mplot3d import Axes3D
@@ -47,43 +49,36 @@ def main():
 		worksheet = xlData.parse(bactName)
 
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
+		sigma  = 5
+		g = 3
 
-		# distanceMatrix = pairwise_distances(X, metric = 'sqeuclidean')
-		distanceMatrix = pairwise_distances(X, metric = 'euclidean')
+		K = rbf_kernel(X, gamma = 0.5)
 
-		d = distanceMatrix.flatten()
+		G=nx.Graph()
+		for i in range(K.shape[0]):
+			for j in range(K.shape[1]):
+				G.add_edge(str(i),str(j), weight=K[i,j])
 
-		mu = np.mean(d)
-		std = np.std(d)
-		md = np.median(d)
+		elarge=[(u,v) for (u,v,d) in G.edges(data=True) if d['weight'] >0.5]
+		esmall=[(u,v) for (u,v,d) in G.edges(data=True) if d['weight'] <=0.5]
 
-		# data = [1.5]*7 + [2.5]*2 + [3.5]*8 + [4.5]*3 + [5.5]*1 + [6.5]*8
-		# density = gaussian_kde(d)
-		# xs = np.linspace(0,10,900)
-		# density.covariance_factor = lambda : .25
-		# density._compute_covariance()
-		# plt.plot(xs,density(xs))
-		# plt.show()
+		pos=nx.spring_layout(G) # positions for all nodes
 
+		# nodes
+		nx.draw_networkx_nodes(G,pos,node_size=500)
 
-		num_bins = 20
-		# the histogram of the data
-		n, bins, patches = plt.hist(d, num_bins, normed=1, facecolor='green', alpha=0.5)
-		# add a 'best fit' line
-		y = mlab.normpdf(bins, mu, std)
-		plt.axvline(md, color='b', linestyle='dashed', linewidth=2)
-		plt.plot(bins, y, 'r')
-		plt.xlabel('Euclidean distance')
-		plt.ylabel('Probability')
-		plt.title('Histogram of Euclidean distances')
+		# edges
+		nx.draw_networkx_edges(G,pos, edgelist=elarge, width=2)
+		nx.draw_networkx_edges(G,pos, edgelist=esmall, width=2,alpha=0.5,edge_color='b',style='dashed')
 
-		# Tweak spacing to prevent clipping of ylabel
-		plt.subplots_adjust(left=0.15)
-		plt.show()
+		# labels
+		nx.draw_networkx_labels(G,pos,font_size=15,font_family='sans-serif')
+
+		plt.axis('off')
+		# plt.savefig("weighted_graph.png") # save as png
+		plt.show() # display
+
 		break
-
-		# print sqrt(2)*np.median(distanceMatrix)
-		# sqrt(2)*np.median(distanceMatrix)
 
 def my_dist(x):
     return np.exp(-x ** 2)
@@ -93,3 +88,4 @@ def my_dist(x):
 
 if __name__ == '__main__':
 	main()
+

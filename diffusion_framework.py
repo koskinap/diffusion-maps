@@ -11,10 +11,8 @@ from math import sqrt
 import string
 
 import numpy as np
-from numpy.linalg import svd
 from numpy.linalg import eig
 from numpy.linalg import inv
-from scipy.linalg import svd as scipysvd
 
 import pandas as pd
 
@@ -24,11 +22,6 @@ from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.metrics.pairwise import laplacian_kernel
 from sklearn.metrics.pairwise import linear_kernel
 from sklearn.metrics.pairwise import polynomial_kernel
-from sklearn.datasets import make_swiss_roll
-
-import matplotlib.cm as cm
-import matplotlib.pyplot as plt
-from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
 
 np.set_printoptions(precision=10)
@@ -59,13 +52,13 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 		ErrMessages.append("Kernel method must be gaussian, linear, polynomial or laplacian")
 
 	if len(ErrMessages)>0:
-		return None, ErrMessages
-
+		for err in ErrMessages:
+			print err
+		exit()
+		return None
 	# Set sigma
 	# distanceMatrix = pairwise_distances(X, metric = 'sqeuclidean')
-
 	# d = distanceMatrix.flatten()
-
 	# sigma = sqrt(np.median(d)/2)
 	# print sigma
 
@@ -75,14 +68,15 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 	probMatrix = markov_chain(kernelMatrix, alpha)
 
 	# Returns EVD decomposition, w are the unsorted eigenvalues, 
-	# V is a matrix that in V[:, i+1] has the corresponding eigenvector of w[i]
+	# V is a matrix that in V[:,i] has the corresponding eigenvector of w[i]
 	w, V = eig(probMatrix)
 
-	# Sort accoidingly in the decreasing order of eigenvalues the eigenvectors
+	# Sort accordingly in the decreasing order of eigenvalues the eigenvectors
 	idx = w.argsort()[::-1]   
 	eigValues = w[idx]
-	# print eigValues
+	print eigValues[1:5]
 	eigVectors = V[:,idx]
+	# print eigValues
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components: parameter is the number of the components we need our ampping to have
@@ -90,10 +84,10 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 	# Their values is a matter of research
 
 	diffusionMappings = diff_mapping(eigValues, eigVectors, n_components, steps)
-	# diffusionDistances = diffusion_distance(w, V, steps)
+	diffusionDistances = diffusion_distance(eigValues, eigVectors, steps)
 
 
-	return diffusionMappings, ErrMessages
+	return diffusionMappings
 
 
 def kernel_matrix(X, sigma, kernel, pkDegree, c0):
@@ -110,12 +104,12 @@ def kernel_matrix(X, sigma, kernel, pkDegree, c0):
 		gamma = 0.5/sigma**2
 		K = rbf_kernel(X, gamma = gamma)
 	elif kernel == 'laplacian':
-		gamma = 1/(2*sigma)
+		gamma = 1/sigma
 		K = laplacian_kernel(X, gamma = gamma)
 	elif kernel == 'linear':
 		K = linear_kernel(X)
 	elif kernel == 'polynomial':
-		K = polynomial_kernel(X, degree = pkDegree, coef0 = c0 )
+		K = polynomial_kernel(X, gamma=sigma, degree = pkDegree, coef0 = c0 )
 
 	return K
 
@@ -133,7 +127,7 @@ def markov_chain(K, alpha):
 
 	# Solution 1, Kernel normalisation and dividing by row sum
 	Dtemp = np.diag(d)
-	np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal()**alpha))
+	np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal())**alpha)
 	Knorm = np.dot(Dnorm, K).dot(Dnorm)
 	
 	d2 = np.sum(Knorm, axis = 1)

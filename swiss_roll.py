@@ -24,7 +24,7 @@ datasource = './data/'
 def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
-	X, colors = make_swiss_roll(n_samples = 1500, noise = 0.1, random_state = None)
+	X, colors = make_swiss_roll(n_samples = 2000, noise = 0.1, random_state = None)
 	# X, colors = make_s_curve(n_samples = 1500, noise = 0.1, random_state = None)
 
 
@@ -114,6 +114,8 @@ def visualisation2(Xpca, Xkpca, Xmds, Xtsne, color):
 	plt.title('d. Visualised using t-SNE')
 
 	plt.axis('tight')
+	# plt.savefig("./images/swiss_lin.eps")
+
 	plt.show()
 
 
@@ -124,13 +126,13 @@ def visualisation3(Xlle, Xlapl, Xisom, XhesEig,  color):
 	ax.scatter(Xlle[:, 0], Xlle[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')
-	plt.title('a. Local Linear Embeddings')
+	plt.title('a. Locally Linear Embeddings')
 
 	ax = fig.add_subplot(222)
 	ax.scatter(Xlapl[:, 0], Xlapl[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')	
-	plt.title('b. Laplacian Eigenmappings')
+	plt.title('b. Laplacian Eigenmaps')
 
 
 	ax = fig.add_subplot(223)
@@ -144,9 +146,11 @@ def visualisation3(Xlle, Xlapl, Xisom, XhesEig,  color):
 	ax.scatter(XhesEig[:, 0], XhesEig[:, 1], c=color, cmap=plt.cm.Spectral)
 	ax.set_xlabel('Coordinate 1')
 	ax.set_ylabel('Coordinate 2')
-	plt.title('d. Hessian Eigenmappings')
+	plt.title('d. Hessian Eigenmaps')
 
 	plt.axis('tight')
+	# plt.savefig("./images/swiss_man.eps")
+
 	plt.show()
 	
 
@@ -162,6 +166,9 @@ def visualisation(X, color):
 	    ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
 
 	plt.axis('tight')
+
+	# plt.savefig("./images/swiss.eps") # save as png
+
 	plt.show()
 	
 

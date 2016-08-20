@@ -62,22 +62,14 @@ def main():
 		# drX = isomap(X)
 		# drX = lle(X)
 
-		drX, ErrMessages = diffusion_framework(X, kernel = 'gaussian' , sigma = 1, \
-		 n_components = 2, steps = 1, alpha = 0.8)
-
-		
-		# If one of the values of diffusion framework is not valid, 
-		# print error messages and exit
-		if len(ErrMessages)>0:
-			for err in ErrMessages:
-				print err
-			exit()
-
+		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = 0.5, \
+		 n_components = 2, steps = 1, alpha = 0.5)
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()
 		# oned(drX,bactName)
-		scatterplot(drX,bactName, dt)
+		scatterbar(drX, bactName, dt)
+		# onebar(drX,bactName,dt)
 
 
 def oned(X,bactName):
@@ -101,8 +93,46 @@ def oned(X,bactName):
 	plt.title(bactName)
 	plt.show()
 
+def onebar(X, bactName, dt):
+	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
+	'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', \
+	'^', '^', '^', '^', '+']
 
-def  scatterplot(X, bactName, datetimes):
+	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
+	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
+	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
+	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
+
+	fig = plt.figure()
+	ax = fig.add_subplot(111)
+
+	ax.set_title(bactName)
+	points = []
+	names = []
+	date_object = []
+	times = []
+	days = []
+
+	for name_arr in dt.tolist():
+		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
+		names.append(name_arr[0])
+
+	for i in date_object:
+		times.append(int(i.hour))
+		days.append(int(i.day))
+
+	Xx = X[:,0].tolist()
+	w = (max(Xx)-min(Xx))/20
+
+	# ax.bar(Xx, times, width=w, c=colors, alpha = 0.5)
+	ax.bar(Xx, days, width=w, c=colors, alpha = 0.5)
+
+	ax.set_xlabel('Diffusion Coordinate 1')
+	ax.set_ylabel('Time')
+
+	plt.show()
+
+def scatterbar(X, bactName, datetimes):
 
 	# Create a custom set of markers with custom colours to reproduce results
 	# of previous research and compare after dimensionality reduction
@@ -123,6 +153,7 @@ def  scatterplot(X, bactName, datetimes):
 	names = []
 	date_object = []
 	times = []
+	days = []
 
 	for name_arr in datetimes.tolist():
 		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
@@ -130,14 +161,20 @@ def  scatterplot(X, bactName, datetimes):
 
 	for i in date_object:
 		times.append(int(i.hour))
-
-	w = 0.0004
-	ax.bar(X[:,0].tolist(),times, zs=X[:,1].tolist(), zdir='y', width=w, color=colors, alpha = 0.6)
+		days.append(int(i.day)-7)
 
 
-	ax.set_xlabel('X')
-	ax.set_ylabel('Y')
-	ax.set_zlabel('Z')
+	Xx = X[:,0].tolist()
+	Xy = X[:,1].tolist()
+	w = (max(Xx)-min(Xx))/10
+	# ax.bar(Xx, times, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
+	ax.bar(Xx, days, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
+
+
+
+	ax.set_xlabel('Diffusion Coordinate 1')
+	ax.set_zlabel('Time')
+	ax.set_ylabel('Diffusion coordinate 2')
 
 	plt.show()
 
