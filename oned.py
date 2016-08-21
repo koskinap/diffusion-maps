@@ -1,17 +1,20 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Script 6: Visulisation-scatterplot of timepoints in 2D space, 
-# using a selected dimensionality reduction technique
+# Script 6: Visulisation-scatterplot of timepoints in 2D-3D space, 
+# using a selected dimensionality reduction technique to find patterns
 
 import openpyxl
 
 import numpy as np
 import pandas as pd
+from math import sqrt
 
 from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
+from sklearn.metrics.pairwise import pairwise_distances
+
 
 from sklearn.metrics import r2_score
 from datetime import datetime
@@ -32,7 +35,8 @@ matplotlib.rcParams['legend.scatterpoints'] = 1
 # datasource = './data/normalised/NormalisationData.xlsx'
 # datasource = './data/normalised/CustomNormalisationData.xlsx'
 # datasource = './data/normalised/StandardisationData.xlsx'
-datasource = './data/normalised/MinMaxScalerData.xlsx'
+# datasource = './data/normalised/MinMaxScalerData.xlsx'
+datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
 # datasource = './data/normalised/rawData.xlsx'
 
 
@@ -45,8 +49,6 @@ def main():
 
 	dtExcel = pd.ExcelFile(dtsource)
 
-	correlation = []
-
 	for bactName in sheetNames:
 		worksheet = xlData.parse(bactName)
 
@@ -55,22 +57,34 @@ def main():
 		# Keep only the actual timeseries data, last 30 columns
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
 
+		distanceMatrix = pairwise_distances(X, metric = 'euclidean')
+		med = np.median(distanceMatrix)
+		print med
+		s = sqrt(med**2/1.4)
+		print s
+
 		# Perform dimensionality reduction, choose technique
 		# drX = mds(X)
 		# drX = laplacian_embedding(X)
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
 		# drX = lle(X)
+		# drX = diffusion_framework(X, kernel = 'gaussian' , sigma = 17, \
+		#  n_components = 2, steps = 1, alpha = 0.5)
+		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s, \
+		 n_components = 2, steps = 3, alpha = 0.5)
 
-		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = 0.5, \
-		 n_components = 2, steps = 1, alpha = 0.5)
+		idx = [i+1 for i in range(30)]
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()
 		# oned(drX,bactName)
-		scatterbar(drX, bactName, dt)
-		# onebar(drX,bactName,dt)
+		# scatterbar(drX, bactName, dt)
+		onebar(drX,bactName,dt, idx)
+		# break
 
+def my_dist(x):
+    return np.exp(-x ** 2)
 
 def oned(X,bactName):
 	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
@@ -93,10 +107,7 @@ def oned(X,bactName):
 	plt.title(bactName)
 	plt.show()
 
-def onebar(X, bactName, dt):
-	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
-	'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', \
-	'^', '^', '^', '^', '+']
+def onebar(X, bactName, dt, idx):
 
 	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
 	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
@@ -108,38 +119,45 @@ def onebar(X, bactName, dt):
 
 	ax.set_title(bactName)
 	points = []
-	names = []
+	# names = []
 	date_object = []
 	times = []
 	days = []
 
 	for name_arr in dt.tolist():
 		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
-		names.append(name_arr[0])
+		# names.append(name_arr[0])
 
 	for i in date_object:
 		times.append(int(i.hour))
-		days.append(int(i.day))
+		days.append(int(i.day)-7)
 
 	Xx = X[:,0].tolist()
-	w = (max(Xx)-min(Xx))/20
+	Xy = X[:,1].tolist()
 
-	# ax.bar(Xx, times, width=w, c=colors, alpha = 0.5)
-	ax.bar(Xx, days, width=w, c=colors, alpha = 0.5)
+	w = (max(Xx)-min(Xx))/100
+	# w = (max(Xy)-min(Xy))/50
+
+
+	# ax.bar(Xx, idx, width=w, color=colors, alpha = 0.7)
+	# ax.bar(Xy, idx, width=w, color=colors, alpha = 0.7)
+
+	# ax.bar(Xx, times, width=w, color=colors, alpha = 0.7)
+	ax.bar(Xy, times, width=w, color=colors, alpha = 0.7)
+
+	# ax.bar(Xy, days, width=w, color=colors, alpha = 0.7)
+	# ax.bar(Xx, days, width=w, color=colors, alpha = 0.7)
 
 	ax.set_xlabel('Diffusion Coordinate 1')
+	# ax.set_xlabel('Diffusion Coordinate 2')
 	ax.set_ylabel('Time')
-
+	# ax.set_ylabel('Day')
 	plt.show()
 
 def scatterbar(X, bactName, datetimes):
 
 	# Create a custom set of markers with custom colours to reproduce results
 	# of previous research and compare after dimensionality reduction
-	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
-	'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', \
-	'^', '^', '^', '^', '+']
-
 	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
 	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
 	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
@@ -163,17 +181,16 @@ def scatterbar(X, bactName, datetimes):
 		times.append(int(i.hour))
 		days.append(int(i.day)-7)
 
-
 	Xx = X[:,0].tolist()
 	Xy = X[:,1].tolist()
 	w = (max(Xx)-min(Xx))/10
-	# ax.bar(Xx, times, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
-	ax.bar(Xx, days, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
 
-
+	ax.bar(Xx, times, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
+	# ax.bar(Xx, days, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
 
 	ax.set_xlabel('Diffusion Coordinate 1')
 	ax.set_zlabel('Time')
+	# ax.set_zlabel('Day')
 	ax.set_ylabel('Diffusion coordinate 2')
 
 	plt.show()

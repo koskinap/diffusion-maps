@@ -23,11 +23,11 @@ originalDataSource = './data/Science_ortholog_cluster_counts_all_taxa.xlsx'
 
 datasource = './data/normalised/'
 filesource = ['RawData.xlsx','NormalisationData.xlsx','StandardisationData.xlsx', \
-'MinMaxScalerData.xlsx', 'sqrtData.xlsx','CustomNormalisationData.xlsx']
+'MinMaxScalerData.xlsx', 'sqrtData.xlsx','NormalisationByRowData.xlsx','MinMaxScalerFeatureData.xlsx']
 dtsource = './data/datetimes.xlsx'
 
 titles = ['Original data', 'Normalised data', 'Standardised data', \
-'Scaled data with MinMaxScale','Square root divided by sum data','Custom normalisation']
+'Scaled data with MinMaxScaler','Square root divided by sum data','Feature normalisation','Scaled data with MinMaxScaler by feature']
 
 def main():
 
@@ -37,14 +37,11 @@ def main():
 
 	# Load datetime points from file
 	dtArray = pd.DataFrame(pd.ExcelFile(dtsource).parse()).as_matrix().tolist()
-	dtList = []
+	dtList = ['']
 	for dt in dtArray:
 		dtList.append(dt[0])
 
 	for bactName in sheetNames:
-
-		# fig = plt.figure()
-		# no = 321
 
 		for index, f in enumerate(filesource):
 
@@ -58,35 +55,21 @@ def main():
 			print bactName
 			print worksheet.shape
 
-
-			# boxplot(X, fig, titles[index], no, dtList)
-			# ax = fig.add_subplot(no)
-			# ax.set_title(title)
-
 			X.boxplot(return_type='dict')
 
 			plt.xlabel('Time point')
-			# plt.xticks(list(range(30)), dtList, rotation='vertical')
-			# plt.xticks(list(range(30)), list(range(30)), rotation='vertical')
-
-			# plt.xaxis.tick_top()
+			plt.xticks(range(31), dtList, rotation='vertical')
 
 			plt.ylabel('Values')
-			plt.title(titles[index])
-			plt.savefig("./images/"+titles[index]+bactName+"boxplot.eps")
-			plt.clf()
 
+			plt.title(titles[index])
+			plt.tight_layout()
+			plt.savefig("./images/"+titles[index]+bactName+".eps")
+			plt.clf()
 
 		if bactName == 'SAR11':
 			break
-			# no += 1
-		break
-
-		# plt.tight_layout()
-		# plt.title(bactName)
-		# # plt.savefig("./images/"+bactName+"boxplot.eps")
-		# plt.show()
-
+		# break
 		# break
 
 def boxplot(data, fig, title, no, dtList):

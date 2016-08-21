@@ -41,7 +41,7 @@ def main():
 
 	# Select scaling method between [MinMaxScaler, Standardisation ,Normalisation
 	 # sqrt,NormalisationByRow]
-	normMethod = 'CustomNormalisation'
+	normMethod = 'MinMaxScalerFeature'
 
 	writer = pd.ExcelWriter('./data/normalised/' + normMethod + 'Data.xlsx')
 
@@ -62,6 +62,9 @@ def main():
 		if normMethod == 'MinMaxScaler':
 			normData = minMaxNormalisation(Xnp)
 
+		elif normMethod == 'MinMaxScalerFeature':
+			normData = minMaxNormalisation(Xnp.transpose()).transpose()
+
 		elif normMethod == 'Normalisation':
 			normData = normalisation(Xnp, 1)
 		
@@ -74,8 +77,8 @@ def main():
 		elif normMethod == 'NormalisationByRow':
 			normData = normalisation(Xnp, 0)
 
-		elif normMethod == 'CustomNormalisation':
-			normData = custom_normalisation(Xnp)
+		# elif normMethod == 'CustomNormalisation':
+		# 	normData = custom_normalisation(Xnp)
 		else:
 			normData = Xnp
 
@@ -110,37 +113,37 @@ def minMaxNormalisation(data):
 def normalisation(data, axis):
 	return preprocessing.normalize(data, axis = axis)
 
-def custom_normalisation(data):
+# def custom_normalisation(data):
 
-	# this is close to stamdarization, no different results
-	Nexp = data.shape[0]
-	Ndt = data.shape[1]
+# 	# this is close to stamdarization, no different results
+# 	Nexp = data.shape[0]
+# 	Ndt = data.shape[1]
 
-	normData = np.zeros((Nexp,Ndt))
-	nonZero = np.zeros(Ndt)
-	mean = np.zeros(Ndt)
-	std = np.zeros(Ndt)
-	tempsum = np.zeros(Ndt)
-	amax = np.zeros(Ndt)
+# 	normData = np.zeros((Nexp,Ndt))
+# 	nonZero = np.zeros(Ndt)
+# 	mean = np.zeros(Ndt)
+# 	std = np.zeros(Ndt)
+# 	tempsum = np.zeros(Ndt)
+# 	amax = np.zeros(Ndt)
 
-	for j in range(Ndt):
-		nonZero[j] = np.count_nonzero(data[:,j])
-		mean[j] = sum(data[:,j])/nonZero[j]
-		amax[j] = np.amax(data[:,j])
-		# print amax[j]
-		# print means[j]
-		for i in range(Nexp):
-			# Not to take into account zero elements
-			if data[i,j] != 0:
-				tempsum[j] += (data[i,j]-mean[j])**2
+# 	for j in range(Ndt):
+# 		nonZero[j] = np.count_nonzero(data[:,j])
+# 		mean[j] = sum(data[:,j])/nonZero[j]
+# 		amax[j] = np.amax(data[:,j])
+# 		# print amax[j]
+# 		# print means[j]
+# 		for i in range(Nexp):
+# 			# Not to take into account zero elements
+# 			if data[i,j] != 0:
+# 				tempsum[j] += (data[i,j]-mean[j])**2
 
-		std[j] = sqrt(tempsum[j]/nonZero[j]) 
-		# print std[j]
+# 		std[j] = sqrt(tempsum[j]/nonZero[j]) 
+# 		# print std[j]
 
-	for i in range(Nexp):
-		for j in range(Ndt):
-			normData[i,j] = (data[i,j]-mean[j])/std[j]
-			# normData[i,j] = (data[i,j]-mean[j])/amax[j]
+# 	for i in range(Nexp):
+# 		for j in range(Ndt):
+# 			normData[i,j] = (data[i,j]-mean[j])/std[j]
+# 			# normData[i,j] = (data[i,j]-mean[j])/amax[j]
 
 
 

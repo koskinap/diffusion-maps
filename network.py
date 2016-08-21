@@ -80,12 +80,6 @@ def main():
 
 		break
 
-def my_dist(x):
-    return np.exp(-x ** 2)
-
-
-
-
 if __name__ == '__main__':
 	main()
 

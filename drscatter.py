@@ -9,9 +9,13 @@ import openpyxl
 import numpy as np
 import pandas as pd
 
+from math import sqrt
+
 from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
+from sklearn.metrics.pairwise import pairwise_distances
+
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -28,7 +32,8 @@ matplotlib.rcParams['legend.scatterpoints'] = 1
 # datasource = './data/normalised/NormalisationData.xlsx'
 # datasource = './data/normalised/CustomNormalisationData.xlsx'
 # datasource = './data/normalised/StandardisationData.xlsx'
-datasource = './data/normalised/MinMaxScalerData.xlsx'
+# datasource = './data/normalised/MinMaxScalerData.xlsx'
+datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
 # datasource = './data/normalised/rawData.xlsx'
 
 
@@ -61,8 +66,8 @@ def main():
 		# drX = lle(X)
 
 		# Diffusion framework block start
-		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = 0.7069, \
-		 n_components = 2, steps = 2, alpha = 0)
+		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s, \
+		 n_components = 2, steps = 1, alpha = 0.5)
 		# Diffusion framework block end
 
 		# Read time-date from file
@@ -72,6 +77,7 @@ def main():
 		scatterplot(drX, bactName, no, fig, dt)
 
 		no+=1
+		# break
 
 	plt.tight_layout()
 	plt.show()
