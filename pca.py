@@ -34,10 +34,12 @@ def main():
 	dtExcel = pd.ExcelFile(dtsource)
 
 	# writer = pd.ExcelWriter('./data/pcaData.xlsx')
+	no = 321
+
 	fig = plt.figure()
 	
 	for bactName in sheetNames:
-		no += licycle.next()
+		# no += licycle.next()
 		worksheet = xlData.parse(bactName)
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
@@ -52,6 +54,7 @@ def main():
 		XTransposedPca = pca.fit_transform(XTransposed)
 		scatterplot2(XTransposedPca, bactName, no, fig, dt)
 
+		no+=1
 
 	plt.tight_layout()
 	plt.show()
@@ -94,15 +97,15 @@ def  scatterplot2(X, bactName, no, fig, datetimes):
 	for m, c, i, j in zip(markers, colors, X[:,0], X[:,1]):
 		points.append(ax.scatter(i, j, s = 50, marker=m, c=c))
 
-	fig.legend(points, names, 'center right', ncol=1)
+	fig.legend(points, names, 'lower center', ncol=5)
 
-	plt.xlabel('Component 1')
-	plt.ylabel('Component 2')
+
+	plt.xlabel('Principal Component 1')
+	plt.ylabel('Principal Component 2')
+	# plt.tight_layout()
 
 	return fig
 
-def normalisation(dataFrame):
-	return preprocessing.normalize(dataFrame)
 
 if __name__ == '__main__':
 	main()

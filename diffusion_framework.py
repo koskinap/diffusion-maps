@@ -46,11 +46,7 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 			print err
 		exit()
 		return None
-	# Set sigma
-	# distanceMatrix = pairwise_distances(X, metric = 'sqeuclidean')
-	# d = distanceMatrix.flatten()
-	# sigma = sqrt(np.median(d)/2)
-	# print sigma
+
 
 	kernelMatrix = kernel_matrix(X, sigma, kernel)
 
@@ -60,13 +56,11 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 	# Returns EVD decomposition, w are the unsorted eigenvalues, 
 	# V is a matrix that in V[:,i] has the corresponding eigenvector of w[i]
 	w, V = eig(probMatrix)
-
 	# Sort accordingly in the decreasing order of eigenvalues the eigenvectors
 	idx = w.argsort()[::-1]   
 	eigValues = w[idx]
 	print eigValues[1:8]
 	eigVectors = V[:,idx]
-	# print eigValues
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components: parameter is the number of the components we need our ampping to have
@@ -92,6 +86,7 @@ def kernel_matrix(X, sigma, kernel):
 
 	if kernel == 'gaussian':
 		gamma = 0.5/sigma**2
+		# gamma = 1/sigma**2
 		K = rbf_kernel(X, gamma = gamma)
 	elif kernel == 'laplacian':
 		gamma = 1/sigma
@@ -111,16 +106,17 @@ def markov_chain(K, alpha):
 	Knorm = np.zeros((N,N))
 	Dnorm = np.zeros((N,N))
 
-	# Solution 1, Kernel normalisation and dividing by row sum
+	# Kernel normalisation and dividing by row sum
 	Dtemp = np.diag(d)
 	np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal())**alpha)
 	Knorm = np.dot(Dnorm, K).dot(Dnorm)
 	
+	# divide normalised kernel matrix by row sum
+	# convert to probability transition matrix
 	d2 = np.sum(Knorm, axis = 1)
 	D = np.diag(d2)
 	P = np.dot(inv(D), Knorm)
 
-	# P is not symmetric!!!
 	return P
 
 

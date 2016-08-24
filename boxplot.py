@@ -62,7 +62,7 @@ def main():
 
 			plt.ylabel('Values')
 
-			plt.title(titles[index])
+			# plt.title(titles[index])
 			plt.tight_layout()
 			plt.savefig("./images/"+titles[index]+bactName+".eps")
 			plt.clf()

@@ -16,11 +16,9 @@ from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
 from sklearn.metrics.pairwise import pairwise_distances
 
-
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
-from mpl_toolkits.mplot3d import Axes3D
 
 from diffusion_framework import main as diffusion_framework
 
@@ -28,13 +26,12 @@ matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
 
 # Choose set of normalised data
+# datasource = './data/normalised/rawData.xlsx'
 # datasource = './data/normalised/sqrtData.xlsx'
 # datasource = './data/normalised/NormalisationData.xlsx'
-# datasource = './data/normalised/CustomNormalisationData.xlsx'
-# datasource = './data/normalised/StandardisationData.xlsx'
+# datasource = './data/normalised/NormalisationByRowData.xlsx'
 # datasource = './data/normalised/MinMaxScalerData.xlsx'
 datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
-# datasource = './data/normalised/rawData.xlsx'
 
 
 dtsource = './data/datetimes.xlsx'
@@ -66,7 +63,7 @@ def main():
 		# drX = lle(X)
 
 		# Diffusion framework block start
-		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s, \
+		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = 13,\
 		 n_components = 2, steps = 1, alpha = 0.5)
 		# Diffusion framework block end
 
@@ -79,7 +76,7 @@ def main():
 		no+=1
 		# break
 
-	plt.tight_layout()
+	# plt.tight_layout()
 	plt.show()
 
 def  scatterplot(X, bactName, no, fig, datetimes):
@@ -127,9 +124,11 @@ def mds(data):
 	return mdsm.fit_transform(data)
 
 def tsneVis(data):
-	model = manifold.TSNE(n_components=2, random_state=0)
+	pca = PCA(n_components = 50, whiten = True)
+	XTransposedPca = pca.fit_transform(data)
+	model = manifold.TSNE(n_components=2, perplexity=5, early_exaggeration=20, random_state=0)
 	np.set_printoptions(suppress=True)
-	return model.fit_transform(data)
+	return model.fit_transform(XTransposedPca)
 
 def isomap(data):
 	isom = manifold.Isomap(n_components = 2, n_neighbors=5)

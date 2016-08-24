@@ -41,7 +41,7 @@ def main():
 
 	# Select scaling method between [MinMaxScaler, Standardisation ,Normalisation
 	 # sqrt,NormalisationByRow]
-	normMethod = 'MinMaxScalerFeature'
+	normMethod = 'NormalisationByRow'
 
 	writer = pd.ExcelWriter('./data/normalised/' + normMethod + 'Data.xlsx')
 
@@ -55,8 +55,7 @@ def main():
 
 		# Print dimensions of working spreadsheet
 		print bactName
-		print worksheet.shape
-
+		
 		Xnp = X.as_matrix()
 		# Normalise according to selected scaling method
 		if normMethod == 'MinMaxScaler':
@@ -77,8 +76,6 @@ def main():
 		elif normMethod == 'NormalisationByRow':
 			normData = normalisation(Xnp, 0)
 
-		# elif normMethod == 'CustomNormalisation':
-		# 	normData = custom_normalisation(Xnp)
 		else:
 			normData = Xnp
 

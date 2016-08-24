@@ -8,11 +8,8 @@ import openpyxl
 import numpy as np
 import pandas as pd
 from math import sqrt
-from scipy.stats import gaussian_kde
-from scipy.interpolate import UnivariateSpline
 
 from sklearn.metrics.pairwise import pairwise_distances
-from sklearn.metrics.pairwise import rbf_kernel
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -27,11 +24,10 @@ matplotlib.rcParams['legend.scatterpoints'] = 1
 # Choose set of normalised data
 # datasource = './data/normalised/sqrtData.xlsx'
 # datasource = './data/normalised/NormalisationData.xlsx'
-# datasource = './data/normalised/CustomNormalisationData.xlsx'
-# datasource = './data/normalised/StandardisationData.xlsx'
+# datasource = './data/normalised/NormalisationByRowData.xlsx'
 # datasource = './data/normalised/MinMaxScalerData.xlsx'
-datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
-# datasource = './data/normalised/rawData.xlsx'
+# datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
+datasource = './data/normalised/rawData.xlsx'
 
 
 dtsource = './data/datetimes.xlsx'
@@ -70,7 +66,6 @@ def prob_dens(d):
 	print np.trapz(p,x)
 	plt.plot(x, p)
 	plt.show()
-	# break
 
 
 def my_dist(x):
@@ -78,32 +73,22 @@ def my_dist(x):
 
 def histogram(d):
 	num_bins = 50
-	#the histogram of the data
-	n, bins, patches = plt.hist(d, num_bins, normed=1, facecolor='green', alpha=0.5)
+	# histogram of the data
+	# n, bins, patches = plt.hist(d, num_bins, normed=1, facecolor='green', alpha=0.5)
+	n, bins, patches = plt.hist(d, num_bins, facecolor='green', alpha=0.5)
+
 	mu = np.mean(d)
 	std = np.std(d)
 	md = np.median(d)
-	# add a 'best fit' line
-	y = mlab.normpdf(bins, mu, std)
-	plt.axvline(md, color='b', linestyle='dashed', linewidth=2)
-	plt.plot(bins, y, 'r')
+
+
+	plt.axvline(md, color='b', linestyle='dashed', linewidth=1)
+
 	plt.xlabel('Euclidean distance')
 	plt.ylabel('Probability')
 	plt.title('Histogram of Euclidean distances')
 	plt.subplots_adjust(left=0.15)
-	plt.show()
-
-
-def histogram2(d):
-	num_bins = 50
-
-	p, x = np.histogram(d, bins=num_bins) # bin it into n = N/10 bins
-	x = x[:-1] + (x[1] - x[0])/2   # convert bin edges to centers
-	f = UnivariateSpline(x, p, s=num_bins)
-	plt.plot(x, f(x))
-
-	# Tweak spacing to prevent clipping of ylabel
-	plt.subplots_adjust(left=0.15)
+	plt.tight_layout()
 	plt.show()
 
 
