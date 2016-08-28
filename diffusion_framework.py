@@ -6,9 +6,7 @@
 from __future__ import division
 
 import os, math
-from math import exp
 from math import sqrt
-import string
 
 import numpy as np
 from numpy.linalg import eig
@@ -16,7 +14,6 @@ from numpy.linalg import inv
 
 import pandas as pd
 
-from sklearn.utils.extmath import fast_dot
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.metrics.pairwise import laplacian_kernel
@@ -56,37 +53,32 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 	# Returns EVD decomposition, w are the unsorted eigenvalues, 
 	# V is a matrix that in V[:,i] has the corresponding eigenvector of w[i]
 	w, V = eig(probMatrix)
-	# Sort accordingly in the decreasing order of eigenvalues the eigenvectors
+	# Sort eigenvectors according to decreasing order of eigenvalues 
 	idx = w.argsort()[::-1]   
 	eigValues = w[idx]
-	print eigValues[1:8]
 	eigVectors = V[:,idx]
+	print eigValues[0:7]
+
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components: parameter is the number of the components we need our ampping to have
 	# steps: is the parameter of  the forward steps propagating on Markov process
-	# Their values is a matter of research
 
 	diffusionMappings = diff_mapping(eigValues, eigVectors, n_components, steps)
 	diffusionDistances = diffusion_distance(eigValues, eigVectors, steps)
-
 
 	return diffusionMappings
 
 
 def kernel_matrix(X, sigma, kernel):
-
 	print("Calculating Kernel matrix")
 
-	# Value of sigma is very important, and objective of research.Here default value.
-	# Get dimensions of square distance Matrix N
+	# Initialise with zeros Kernel-Weight matrix
 	N = X.shape[0]
-	# Initialise with zeros Kernel matrix
 	K = np.zeros((N, N))
 
 	if kernel == 'gaussian':
-		gamma = 0.5/sigma**2
-		# gamma = 1/sigma**2
+		gamma = 1/(2*sigma**2)
 		K = rbf_kernel(X, gamma = gamma)
 	elif kernel == 'laplacian':
 		gamma = 1/sigma
@@ -98,15 +90,13 @@ def kernel_matrix(X, sigma, kernel):
 def markov_chain(K, alpha):
 	print("Calculating Markov chain matrix. \n")
 
-	# Initialise matrices
+	# Initialise matrices needed
 	N = K.shape[0]
-	P = np.zeros((N,N))
-	d = np.sum(K, axis = 1)
 	d2 = np.zeros(N)
-	Knorm = np.zeros((N,N))
-	Dnorm = np.zeros((N,N))
+	Knorm, Dnorm, P = np.zeros((N,N)), np.zeros((N,N)), np.zeros((N,N))
 
-	# Kernel normalisation and dividing by row sum
+	# Weight matrix normalisation
+	d = np.sum(K, axis = 1)
 	Dtemp = np.diag(d)
 	np.fill_diagonal(Dnorm, 1/(Dtemp.diagonal())**alpha)
 	Knorm = np.dot(Dnorm, K).dot(Dnorm)
@@ -115,6 +105,7 @@ def markov_chain(K, alpha):
 	# convert to probability transition matrix
 	d2 = np.sum(Knorm, axis = 1)
 	D = np.diag(d2)
+
 	P = np.dot(inv(D), Knorm)
 
 	return P

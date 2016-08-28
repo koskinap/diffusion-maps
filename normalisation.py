@@ -40,7 +40,7 @@ def main():
 	sheetNames = xlData.sheet_names
 
 	# Select scaling method between [MinMaxScaler, Standardisation ,Normalisation
-	 # sqrt,NormalisationByRow]
+	# sqrt,NormalisationByRow]
 	normMethod = 'NormalisationByRow'
 
 	writer = pd.ExcelWriter('./data/normalised/' + normMethod + 'Data.xlsx')
@@ -100,52 +100,17 @@ def sqrt_normalisation(data):
 
 
 def minMaxNormalisation(data):
-	
 	min_max_scaler = preprocessing.MinMaxScaler()
 	tsScaled = min_max_scaler.fit_transform(data)
 	dfNormalized = pd.DataFrame(tsScaled)
 
 	return dfNormalized
 
+
 def normalisation(data, axis):
 	return preprocessing.normalize(data, axis = axis)
 
-# def custom_normalisation(data):
-
-# 	# this is close to stamdarization, no different results
-# 	Nexp = data.shape[0]
-# 	Ndt = data.shape[1]
-
-# 	normData = np.zeros((Nexp,Ndt))
-# 	nonZero = np.zeros(Ndt)
-# 	mean = np.zeros(Ndt)
-# 	std = np.zeros(Ndt)
-# 	tempsum = np.zeros(Ndt)
-# 	amax = np.zeros(Ndt)
-
-# 	for j in range(Ndt):
-# 		nonZero[j] = np.count_nonzero(data[:,j])
-# 		mean[j] = sum(data[:,j])/nonZero[j]
-# 		amax[j] = np.amax(data[:,j])
-# 		# print amax[j]
-# 		# print means[j]
-# 		for i in range(Nexp):
-# 			# Not to take into account zero elements
-# 			if data[i,j] != 0:
-# 				tempsum[j] += (data[i,j]-mean[j])**2
-
-# 		std[j] = sqrt(tempsum[j]/nonZero[j]) 
-# 		# print std[j]
-
-# 	for i in range(Nexp):
-# 		for j in range(Ndt):
-# 			normData[i,j] = (data[i,j]-mean[j])/std[j]
-# 			# normData[i,j] = (data[i,j]-mean[j])/amax[j]
-
-
-
-	return normData
-
+	
 def standarization(data):
 	standardScaler = preprocessing.StandardScaler()
 	tsScaled = standardScaler.fit_transform(data)
@@ -153,10 +118,12 @@ def standarization(data):
 
 	return dfStandarized
 
+
 def boxplot(data):
 	plt.figure()
 	data.boxplot(return_type='dict')
 	plt.show()
+
 
 if __name__ == '__main__':
 	main()

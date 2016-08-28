@@ -24,7 +24,7 @@ def main():
 	dataMatrix, colors = make_swiss_roll(n_samples = 1500, noise = 0.1, random_state = None)	
 
 	diffusionMappings = diffusion_framework(dataMatrix, kernel = 'gaussian', \
-		n_components = 4, sigma = s, steps = 1, alpha = 0.5)
+		n_components = 4, sigma = 1, steps = 1, alpha = 0.5)
 
 	visualisation(dataMatrix, diffusionMappings, colors)
 
@@ -32,14 +32,6 @@ def main():
 def visualisation(X, XdiffMap, color):
 
 	fig = plt.figure()
-	# try:
-	#     ax = fig.add_subplot(221, projection='3d')
-	#     ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap=plt.cm.Spectral)
-	# except:
-	#     ax = fig.add_subplot(221)
-	#     ax.scatter(X[:, 0], X[:, 2], c=color, cmap=plt.cm.Spectral)
-
-	# ax.set_title("Original data")
 
 	# Plot all together
 	ax = fig.add_subplot(311)

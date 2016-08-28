@@ -1,31 +1,37 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Script 6: Visulisation-scatterplot of timepoints in 2D space, 
-# using a selected dimensionality reduction technique
+# Script 6: Visulisation-scatterplot of timepoints in 2D-3D space, 
+# using a selected dimensionality reduction technique to find patterns
 
 import openpyxl
 
 import numpy as np
 import pandas as pd
-
 from math import sqrt
 
 from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
 from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.decomposition import PCA
+
+
+from sklearn.metrics import r2_score
+from datetime import datetime
 
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
+from mpl_toolkits.mplot3d import Axes3D
 
 from diffusion_framework import main as diffusion_framework
+
+from itertools import cycle
 
 matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
 
-# Choose set of normalised data
 # datasource = './data/normalised/rawData.xlsx'
 # datasource = './data/normalised/sqrtData.xlsx'
 # datasource = './data/normalised/NormalisationData.xlsx'
@@ -40,22 +46,28 @@ def main():
 
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
-	print type(sheetNames)
-	print sheetNames
-	# sheetNames = ['Prochlorococcus', 'Roseobacter', 'SAR324']
 
 	dtExcel = pd.ExcelFile(dtsource)
 
-	fig = plt.figure()
-	no = 321
-	# no = 311
-
 	for bactName in sheetNames:
 		worksheet = xlData.parse(bactName)
+		idx = range(30)
+		# Read time-dates from file
+		dtDf = dtExcel.parse(bactName)
+		dt = pd.DataFrame(dtDf).as_matrix()
+
 		print('\nComputing embedding for:  ' + bactName)
 
 		# Keep only the actual timeseries data, last 30 columns
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
+
+		distanceMatrix = pairwise_distances(X, metric = 'euclidean')
+		d = distanceMatrix.flatten()
+
+		# med = np.median(d)
+		# s = sqrt(med**2/1.4)
+
+		s = np.std(d)
 
 		# Perform dimensionality reduction, choose technique
 		# drX = mds(X)
@@ -64,64 +76,67 @@ def main():
 		# drX = isomap(X)
 		# drX = lle(X)
 
-		distanceMatrix = pairwise_distances(X, metric = 'euclidean')
+		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s, \
+		 n_components = 2, steps = 10, alpha = 0.5)
 
-		d = distanceMatrix.flatten()
-		# s = sqrt(np.median(d)**2/1.4)
-		s = np.std(d)
-		# print s
-		# s = np.median(d) - 2*np.std(d)
-		# s= (np.median(d)-np.std(d))/sqrt(2)
-
-		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s,\
-		 n_components = 2, steps = 1, alpha = 0.5)
-
-		# Read time-date from file
-		dtDf = dtExcel.parse(bactName)
-		dt = pd.DataFrame(dtDf).as_matrix()
-
-		scatterplot(drX, bactName, no, fig, dt)
-
-		no+=1
+		#Choose visualisation
+		idxbar(drX, bactName, dt, idx)
 		# break
 
-	plt.show()
 
-def  scatterplot(X, bactName, no, fig, datetimes):
+def idxbar(X, bactName, dt, idx):
 
-	# Create a custom set of markers with custom colours to reproduce results
-	 # of previous research and compare after dimensionality reduction
-	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
-	'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', \
-	'^', '^', '^', '^', '+']
+	points, names, date_object, times, days, mins, hours = [], [], [], [], [], [], []
 
 	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
 	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
 	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
 	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
 
-	ax = fig.add_subplot(no)
-	ax.set_title(bactName)
-	points = []
-	names = []
+	fig = plt.figure()
+	ax = fig.add_subplot(111)
 
-	for name_arr in datetimes.tolist():
+	ax.set_title('Diffusion maps 2nd coordinate for {}'.format(bactName), fontsize=20)
+
+
+	for name_arr in dt.tolist():
+		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
 		names.append(name_arr[0])
 
-	for m, c, i, j in zip(markers, colors, X[:,0], X[:,1]):
-		points.append(ax.scatter(i, j, s = 50, marker=m, c=c))
+	for ti in date_object:
+		hours.append(int(ti.hour))
+		mins.append(int(ti.minute))
+		times.append(ti.strftime('%H:%M'))
+		days.append(int(ti.day)-6)
 
-	fig.legend(points, names, 'lower center', ncol=5)
-	ax.tick_params(labelsize=12)
+	Xx = X[:,0].tolist()
+	Xy = X[:,1].tolist()
 
-	plt.xlabel('Diffusion coordinate 1', fontsize=12)
-	plt.ylabel('Diffusion coordinate 2', fontsize=12)
+	# Set width of bar according to the min-max values of mapping
+	# in the corresponding a coordinate
+	# w = 0.50
+	# bars = ax.bar(idx, Xx, width=w, color=colors, alpha = 0.8)
+	# ax.set_ylabel('Diffusion Coordinate 1', fontsize=15)
 
-	return fig
+	w = 0.50
+	bars = ax.bar(idx, Xy, width=w, color=colors, alpha = 0.8)
+	ax.set_ylabel('Diffusion Coordinate 2', fontsize=15)
+
+	ax.set_xlabel('Time point', fontsize=15)
+	ax.tick_params(labelsize=14)
+
+	dpos = [1, 11, 19, 29]
+	for dl in dpos:
+		ax.axvline(x=dl, color='k', linestyle='dotted')
+
+	plt.legend(bars, times, loc='center left', bbox_to_anchor=(1, 0.5), fontsize='14', ncol = 1)
+	# plt.savefig('./images/oned/'+bactName+'.png')
+	plt.show()
+
 
 
 def lle(data):
-	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=20, n_components=2)
+	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=5, n_components=2)
 	return X_r
 
 def laplacian_embedding(data):
@@ -133,14 +148,12 @@ def mds(data):
 	return mdsm.fit_transform(data)
 
 def tsneVis(data):
-	# pca = PCA(n_components = 50, whiten = True)
-	# XTransposedPca = pca.fit_transform(data)
-	model = manifold.TSNE(n_components=2, perplexity=5, early_exaggeration=20, random_state=0)
+	model = manifold.TSNE(n_components=2, random_state=0)
 	np.set_printoptions(suppress=True)
 	return model.fit_transform(data)
 
 def isomap(data):
-	isom = manifold.Isomap(n_components = 2, n_neighbors=20)
+	isom = manifold.Isomap(n_components = 2, n_neighbors=5)
 	return isom.fit_transform(data)
 
 if __name__ == '__main__':

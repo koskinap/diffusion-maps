@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 
 from sklearn.datasets import make_swiss_roll
-from sklearn.datasets import make_s_curve
 from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
@@ -20,13 +19,10 @@ from diffusion_framework import main as diffusion_framework
 
 datasource = './data/'
 
-
 def main():
 
 	#For testing purposes of the framework, a swiss roll dataset is generated.
 	X, colors = make_swiss_roll(n_samples = 2000, noise = 0.1, random_state = None)
-	# X, colors = make_s_curve(n_samples = 1500, noise = 0.1, random_state = None)
-
 
 	Xlle = lle(X)
 	Xlapl = laplacian_embedding(X)
@@ -38,19 +34,10 @@ def main():
 	Xkpca = kernel_pca(X)
 	Xmds = mds(X)
 
-
-	# XdiffMap,ErrMessages = diffusion_framework(X, kernel = 'gaussian' , n_components = 2, sigma = 1, steps = 1, alpha = 0.5)
-	# if len(ErrMessages)>0:
-	# 	for err in ErrMessages:
-	# 		print err
-	# 	exit()
-	
 	#Call Visualisation functions
 	visualisation(X, colors)
 	visualisation2(Xpca, Xkpca, Xmds, Xtsne, colors)
 	visualisation3(Xlle, Xlapl, Xisom, XhesEig, colors)
-
-
 
 def lle(data):
 	Xemb, err = manifold.locally_linear_embedding(data, n_neighbors=12, n_components=2)

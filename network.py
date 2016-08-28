@@ -22,11 +22,11 @@ matplotlib.style.use('ggplot')
 
 # Choose set of normalised data
 # datasource = './data/normalised/rawData.xlsx'
-# datasource = './data/normalised/sqrtData.xlsx'
+datasource = './data/normalised/sqrtData.xlsx'
 # datasource = './data/normalised/NormalisationData.xlsx'
 # datasource = './data/normalised/NormalisationByRowData.xlsx'
 # datasource = './data/normalised/MinMaxScalerData.xlsx'
-datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
+# datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
 
 
 dtsource = './data/datetimes.xlsx'

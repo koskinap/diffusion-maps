@@ -34,10 +34,10 @@ matplotlib.rcParams['legend.scatterpoints'] = 1
 
 # datasource = './data/normalised/rawData.xlsx'
 # datasource = './data/normalised/sqrtData.xlsx'
-# datasource = './data/normalised/NormalisationData.xlsx'
+datasource = './data/normalised/NormalisationData.xlsx'
 # datasource = './data/normalised/NormalisationByRowData.xlsx'
-# datasource = './data/normalised/MinMaxScalerData.xlsx'
-datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
+# datasource = './data/no?rmalised/MinMaxScalerData.xlsx'
+# datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
 
 
 dtsource = './data/datetimes.xlsx'
@@ -51,6 +51,11 @@ def main():
 
 	for bactName in sheetNames:
 		worksheet = xlData.parse(bactName)
+		# idx = [i+1 for i in range(30)]
+		idx = range(30)
+		# Read time-dates from file
+		dtDf = dtExcel.parse(bactName)
+		dt = pd.DataFrame(dtDf).as_matrix()
 
 		print('\nComputing embedding for:  ' + bactName)
 
@@ -58,37 +63,33 @@ def main():
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
 
 		distanceMatrix = pairwise_distances(X, metric = 'euclidean')
-		med = np.median(distanceMatrix)
-		# print med
-		# print np.std(distanceMatrix)
+		d = distanceMatrix.flatten()
+		# med = np.median(d)
 		# s = sqrt(med**2/1.4)
 
-		# Perform dimensionality reduction, choose technique
+		# s = 2*np.std(d)
 
+		# Perform dimensionality reduction, choose technique
 		# drX = mds(X)
 		# drX = laplacian_embedding(X)
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
-		# drX = lle(X)
-		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = 23.5, \
-		 n_components = 2, steps = 1, alpha = 0.5)
+		drX = lle(X)
 
-		idx = [i+1 for i in range(30)]
-		# Read time-date from file
-		dtDf = dtExcel.parse(bactName)
-		dt = pd.DataFrame(dtDf).as_matrix()
+		# drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s, \
+		#  n_components = 2, steps = 1, alpha = 0.5)
+
+		#Choose visualisation
 		# oned(drX,bactName)
 		# scatterbar(drX, bactName, dt)
-		onebar(drX, bactName, dt, idx)
+		# onebar(drX, bactName, dt, idx)
+		idxbar(drX, bactName, dt, idx)
 		# break
 
-def my_dist(x):
-    return np.exp(-x ** 2)
 
-def oned(X,bactName):
-	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
-	'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', \
-	'^', '^', '^', '^', '+']
+def idxbar(X, bactName, dt, idx):
+
+	points, names, date_object, times, days, mins, hours = [], [], [], [], [], [], []
 
 	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
 	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
@@ -98,13 +99,44 @@ def oned(X,bactName):
 	fig = plt.figure()
 	ax = fig.add_subplot(111)
 
-	points = []
-	
-	for m, c, i in zip(markers, colors, X[:,0]):
-		points.append(ax.scatter(i, 0, s = 50, marker=m, c=c))
+	ax.set_title('Diffusion maps 2nd coordinate for {}'.format(bactName), fontsize=20)
 
-	plt.title(bactName)
+
+	for name_arr in dt.tolist():
+		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
+		names.append(name_arr[0])
+
+	for ti in date_object:
+		hours.append(int(ti.hour))
+		mins.append(int(ti.minute))
+		times.append(ti.strftime('%H:%M'))
+		days.append(int(ti.day)-6)
+
+	Xx = X[:,0].tolist()
+	Xy = X[:,1].tolist()
+
+	# Set width of bar according to the min-max values of mapping
+	# in the corresponding a coordinate
+	w = 0.50
+	bars = ax.bar(idx, Xx, width=w, color=colors, alpha = 0.8)
+	ax.set_ylabel('Diffusion Coordinate 1', fontsize=15)
+
+	# w = 0.50
+	# bars = ax.bar(idx, Xy, width=w, color=colors, alpha = 0.8)
+	# ax.set_ylabel('Diffusion Coordinate 2', fontsize=15)
+
+	ax.set_xlabel('Time point', fontsize=15)
+	ax.tick_params(labelsize=14)
+
+	dpos = [1, 11, 19, 29]
+	for dl in dpos:
+		ax.axvline(x=dl, color='k', linestyle='dotted')
+
+	plt.legend(bars, times, loc='center left', bbox_to_anchor=(1, 0.5), fontsize='14', ncol = 1)
+	# plt.savefig('./images/oned/'+bactName+'.png')
 	plt.show()
+
+
 
 def onebar(X, bactName, dt, idx):
 
@@ -117,48 +149,50 @@ def onebar(X, bactName, dt, idx):
 	ax = fig.add_subplot(111)
 
 	ax.set_title(bactName)
-	points = []
-	# names = []
-	date_object = []
-	times = []
-	days = []
+	points, names, date_object, times, days = [], [], [], [], []
+
 
 	for name_arr in dt.tolist():
 		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
-		# names.append(name_arr[0])
+		names.append(name_arr[0])
 
 	for i in date_object:
 		times.append(int(i.hour))
-		days.append(int(i.day)-7)
+		days.append(int(i.day)-6)
 
 	Xx = X[:,0].tolist()
 	Xy = X[:,1].tolist()
 
 	# Set width of bar according to the min-max values of mapping
 	# in the corresponding a coordinate
-	w = (max(Xx)-min(Xx))/100
-	# w = (max(Xy)-min(Xy))/100
+
+	w = (max(Xx)-min(Xx))/50
+	bars = ax.bar(Xx, days, width=w, color=colors, alpha = 0.7)
+	ax.set_xlabel('Diffusion Coordinate 1', fontsize=13)
 
 
-	# ax.bar(Xx, idx, width=w, color=colors, alpha = 0.7)
-	# ax.bar(Xx, times, width=w, color=colors, alpha = 0.7)
-	# ax.bar(Xx, days, width=w, color=colors, alpha = 0.7)
+	# w = (max(Xy)-min(Xy))/50
+	# bars = ax.bar(Xy, days, width=w, color=colors, alpha = 0.7)	
+	# ax.set_xlabel('Diffusion Coordinate 2', fontsize=13)
 
 
-	# ax.bar(Xy, idx, width=w, color=colors, alpha = 0.7)
-	# ax.bar(Xy, times, width=w,  color=colors, alpha = 0.7)
-	ax.bar(Xy, days, width=w, color=colors, alpha = 0.7)	
+	# bars = ax.bar(Xx, idx, width=w, color=colors, alpha = 0.7)
+	# bars = ax.bar(Xx, times, width=w, color=colors, alpha = 0.7)
+	# bars = ax.bar(Xy, idx, width=w, color=colors, alpha = 0.7)
+	# bars = ax.bar(Xy, times, width=w,  color=colors, alpha = 0.7)
 
 
-	ax.set_xlabel('Diffusion Coordinate 1')
-	# ax.set_xlabel('Diffusion Coordinate 2')
-	
-	ax.set_ylabel('Time')
-	# ax.set_ylabel('Day')
-	ax.set_ylabel('Sequence number')
+	# ax.set_ylabel('Time', fontsize=13)
+	ax.set_ylabel('Day', fontsize=13)
+	# ax.set_ylabel('Sequence number')
 
-	# plt.savefig('./images/oned/'+bactName+'.png')
+	plt.legend(bars, names,loc ='center left', bbox_to_anchor=(1, 0.5), fontsize='13')
+	ax.tick_params(labelsize=12)
+
 	plt.show()
+
+
+
 
 def scatterbar(X, bactName, datetimes):
 
@@ -173,11 +207,7 @@ def scatterbar(X, bactName, datetimes):
 
 	ax = fig.add_subplot(111, projection='3d')
 	ax.set_title(bactName)
-	points = []
-	names = []
-	date_object = []
-	times = []
-	days = []
+	points, names, date_object, times, days = [], [], [], [], []
 
 	for name_arr in datetimes.tolist():
 		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
@@ -192,12 +222,13 @@ def scatterbar(X, bactName, datetimes):
 	w = (max(Xx)-min(Xx))/10
 
 	ax.bar(Xx, times, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
-	# ax.bar(Xx, days, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
+	ax.set_zlabel('Time')
+
 
 	ax.set_xlabel('Diffusion Coordinate 1')
 	ax.set_ylabel('Diffusion coordinate 2')
 
-	ax.set_zlabel('Time')
+	# ax.bar(Xx, days, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
 	# ax.set_zlabel('Day')
 	# ax.set_zlabel('Sequence number')
 	
