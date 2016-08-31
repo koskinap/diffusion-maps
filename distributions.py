@@ -1,7 +1,9 @@
-# Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
-# Napoleon Koskinas at University of Southampton, MSc Data Science course
+"""
+Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
+Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Script 6: Plot distribution of sqeuclidean distances
+Script 6: Plot distribution of euclidean distances
+"""
 
 import openpyxl
 
@@ -20,6 +22,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
+
+
 
 # Choose set of normalised data
 # datasource = './data/normalised/rawData.xlsx'
@@ -77,13 +81,13 @@ def histogram(d, bactName, fig, no):
 	plt.xlabel('Euclidean distance')
 	plt.ylabel('Frequency')
 
-	# plt.title('Histogram of Euclidean distances for '+ bactName )
+	plt.title('Histogram of Euclidean distances for '+ bactName )
 	plt.legend([med],['Median'],loc='upper left')
 	plt.title(bactName)
 
-	# plt.subplots_adjust(left=0.15)
-	# plt.tight_layout()
-	# plt.show()
+	plt.subplots_adjust(left=0.15)
+	plt.tight_layout()
+	plt.show()
 
 def prob_dens(d):
 	mu = np.mean(d)

@@ -19,10 +19,11 @@ from diffusion_framework import main as diffusion_framework
 
 def main():
 	#For testing purposes of the framework, a random dataset is generated.
-	dataMatrix, colors = make_swiss_roll(n_samples = 1500, noise = 0, random_state = None)	
+	dataMatrix, colors = make_swiss_roll(n_samples = 150, noise = 0, random_state = None)	
 
 	diffusionMappings = diffusion_framework(dataMatrix, kernel = 'gaussian', \
 		n_components = 4, sigma = 1, steps = 100, alpha = 0.5)
+
 
 	#Set colorbar
 	rng = np.arange(min(colors), max(colors))

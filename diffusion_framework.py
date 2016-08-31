@@ -1,8 +1,10 @@
-# Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
-# Napoleon Koskinas at University of Southampton, MSc Data Science course
+""" 
+Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
+Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Author: Napoleon Koskinas
-# Script 0: Implement diffusion framework, returns diffusion mappings
+Author: Napoleon Koskinas
+Script 0: Implement diffusion framework, returns diffusion mappings
+"""
 
 from __future__ import division
 
@@ -20,7 +22,7 @@ from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.metrics.pairwise import laplacian_kernel
 
 
-def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0.5):
+def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0.5, dist = False):
 
 	ErrMessages = []
 
@@ -39,11 +41,15 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 	if not(kernel in ['gaussian','laplacian']):
 		ErrMessages.append("Kernel method must be gaussian or laplacian")
 
+	if not dist == True:
+		dist = False
+
 	if len(ErrMessages)>0:
 		for err in ErrMessages:
 			print err
 		exit()
 
+	# Compute kernel matrix using kernel function
 	kernelMatrix = kernel_matrix(X, sigma, kernel)
 
 	# Create probability transition matrix from kernel matrix and total dist.
@@ -52,21 +58,23 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 	# Returns EVD decomposition, w are the unsorted eigenvalues, 
 	# V is a matrix that in V[:,i] has the corresponding eigenvector of w[i]
 	w, V = eig(probMatrix)
+
 	# Sort eigenvectors according to decreasing order of eigenvalues 
 	idx = w.argsort()[::-1]   
 	eigValues = w[idx]
 	eigVectors = V[:,idx]
-	print eigValues[0:7]
 
 
 	# Define the diffusion mapping which will be used to represent the data
 	# n_components: parameter is the number of the components we need our ampping to have
 	# steps: is the parameter of  the forward steps propagating on Markov process
-
 	diffusionMappings = diff_mapping(eigValues, eigVectors, n_components, steps)
-	diffusionDistances = diffusion_distance(eigValues, eigVectors, steps)
 
-	return diffusionMappings
+	if dist==True:
+		diffusionDistances = diffusion_distance(eigValues, eigVectors, steps)
+		return diffusionMappings, diffusionDistances
+	else:
+		return diffusionMappings
 
 
 def kernel_matrix(X, sigma, kernel):
@@ -91,8 +99,8 @@ def markov_chain(K, alpha):
 
 	# Initialise matrices needed
 	N = K.shape[0]
-	d2 = np.zeros(N)
-	Knorm, Dnorm, P = np.zeros((N,N)), np.zeros((N,N)), np.zeros((N,N))
+	dk = np.zeros(N)
+	Knorm, Dnorm, P, dk = np.zeros((N,N)), np.zeros((N,N)), np.zeros((N,N)), np.zeros(N)
 
 	# Weight matrix normalisation
 	d = np.sum(K, axis = 1)
@@ -102,8 +110,8 @@ def markov_chain(K, alpha):
 	
 	# divide normalised kernel matrix by row sum
 	# convert to probability transition matrix
-	d2 = np.sum(Knorm, axis = 1)
-	D = np.diag(d2)
+	dk = np.sum(Knorm, axis = 1)
+	D = np.diag(dk)
 
 	P = np.dot(inv(D), Knorm)
 

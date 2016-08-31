@@ -1,8 +1,9 @@
-# Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
-# Napoleon Koskinas at University of Southampton, MSc Data Science course
+"""Diffusion Maps implementation as part of MSc Data Science Project of student 
+Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Script 6: Visulisation-scatterplot of timepoints in 2D-3D space, 
-# using a selected dimensionality reduction technique to find patterns
+Script 6: Visulisation-scatterplot of timepoints in 2D-3D space, 
+using a selected dimensionality reduction technique to find patterns
+"""
 
 import openpyxl
 
@@ -11,13 +12,8 @@ import pandas as pd
 from math import sqrt
 
 from sklearn import manifold
-from sklearn.decomposition import PCA
-from sklearn.decomposition import KernelPCA
 from sklearn.metrics.pairwise import pairwise_distances
-from sklearn.decomposition import PCA
 
-
-from sklearn.metrics import r2_score
 from datetime import datetime
 
 import matplotlib
@@ -25,15 +21,14 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 from mpl_toolkits.mplot3d import Axes3D
 
-from scipy.stats import signaltonoise
-
 from diffusion_framework import main as diffusion_framework
 
-from itertools import cycle
 
 matplotlib.style.use('ggplot')
 matplotlib.rcParams['legend.scatterpoints'] = 1
 
+
+# Select datasource
 # datasource = './data/normalised/rawData.xlsx'
 # datasource = './data/normalised/sqrtData.xlsx'
 datasource = './data/normalised/NormalisationData.xlsx'
@@ -46,6 +41,11 @@ dtsource = './data/datetimes.xlsx'
 
 def main():
 
+	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
+	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
+	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
+	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
+
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
 
@@ -53,7 +53,6 @@ def main():
 
 	for bactName in sheetNames:
 		worksheet = xlData.parse(bactName)
-		# idx = [i+1 for i in range(30)]
 		idx = range(30)
 		# Read time-dates from file
 		dtDf = dtExcel.parse(bactName)
@@ -67,12 +66,17 @@ def main():
 		# Compute distance matrix to extract information
 		distanceMatrix = pairwise_distances(X, metric = 'euclidean')
 		d = distanceMatrix.flatten()
+		
+		# Select sigma by median
 		# med = np.median(d)
 		# s = sqrt(med**2/1.4)
 
+		# Select distance matrix std as sigma
 		s = np.std(d)
 
-		# Perform dimensionality reduction, choose technique
+		# Perform dimensionality reduction, choose technique.
+		# Diffusion maps default choice
+
 		# drX = mds(X)
 		# drX = laplacian_embedding(X)
 		# drX = tsneVis(X) # congested results
@@ -82,29 +86,25 @@ def main():
 		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s, \
 		 n_components = 2, steps = 1, alpha = 0.5)
 
-		#Choose visualisation
-		# oned(drX,bactName)
-		# scatterbar(drX, bactName, dt)
-		# onebar(drX, bactName, dt, idx)
-		idxbar(drX, bactName, dt, idx)
+		# Choose visualisation technique, description provided below
+		scatterbar(drX, bactName, dt, colors)
+		onebar(drX, bactName, dt, idx, colors)
+		idxbar(drX, bactName, dt, idx,colors)
 		break
 
 
-def idxbar(X, bactName, dt, idx):
+"""
+Creates a barplot by representing in form of 
+a bar the diffusion coordinate in a chronological index order
+"""
+def idxbar(X, bactName, dt, idx, colors):
 
 	points, names, date_object, times, days, mins, hours = [], [], [], [], [], [], []
-
-	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
-	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
-	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
-	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
 
 	fig = plt.figure()
 	ax = fig.add_subplot(111)
 
-
-
-
+	# Get time objects for later use
 	for name_arr in dt.tolist():
 		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
 		names.append(name_arr[0])
@@ -115,11 +115,12 @@ def idxbar(X, bactName, dt, idx):
 		times.append(ti.strftime('%H:%M'))
 		days.append(int(ti.day)-6)
 
+	# Get diffusion coordinates
 	Xx = X[:,0].tolist()
 	Xy = X[:,1].tolist()
 
 	# Set width of bar according to the min-max values of mapping
-	# in the corresponding a coordinate
+	# in the corresponding a coordinate. Choose coordinate accordingly
 	w = 0.50
 	bars = ax.bar(idx, Xx, width=w, color=colors, alpha = 0.8)
 	ax.set_ylabel('Diffusion Coordinate 1', fontsize=15)
@@ -140,25 +141,23 @@ def idxbar(X, bactName, dt, idx):
 		ax.axvline(x=dl, color='k', linestyle='dotted')
 
 	plt.legend(bars, times, loc='center left', bbox_to_anchor=(1, 0.5), fontsize='14', ncol = 1)
-	# plt.savefig('./images/oned/'+bactName+'.png')
 	plt.show()
 
 
-
-def onebar(X, bactName, dt, idx):
-
-	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
-	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
-	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
-	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
+"""
+Creates a barplot by representing in form of 
+a bar a day of the time in xaxis the samples are set by coordinate.
+Opposite functionality to idxbar
+"""
+def onebar(X, bactName, dt, idx, colors):
 
 	fig = plt.figure()
 	ax = fig.add_subplot(111)
 
-	ax.set_title(bactName)
+	# ax.set_title(bactName)
 	points, names, date_object, times, days = [], [], [], [], []
 
-
+	# Get time objects for later use
 	for name_arr in dt.tolist():
 		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
 		names.append(name_arr[0])
@@ -167,31 +166,33 @@ def onebar(X, bactName, dt, idx):
 		times.append(int(i.hour))
 		days.append(int(i.day)-6)
 
+	# Get diffusion coordinates
 	Xx = X[:,0].tolist()
 	Xy = X[:,1].tolist()
 
 	# Set width of bar according to the min-max values of mapping
-	# in the corresponding a coordinate
-
+	# in the corresponding a coordinate. Choose coordinate according to preference
 	w = (max(Xx)-min(Xx))/50
 	bars = ax.bar(Xx, days, width=w, color=colors, alpha = 0.7)
 	ax.set_xlabel('Diffusion Coordinate 1', fontsize=13)
-
 
 	# w = (max(Xy)-min(Xy))/50
 	# bars = ax.bar(Xy, days, width=w, color=colors, alpha = 0.7)	
 	# ax.set_xlabel('Diffusion Coordinate 2', fontsize=13)
 
-
-	# bars = ax.bar(Xx, idx, width=w, color=colors, alpha = 0.7)
-	# bars = ax.bar(Xx, times, width=w, color=colors, alpha = 0.7)
-	# bars = ax.bar(Xy, idx, width=w, color=colors, alpha = 0.7)
-	# bars = ax.bar(Xy, times, width=w,  color=colors, alpha = 0.7)
-
-
-	# ax.set_ylabel('Time', fontsize=13)
 	ax.set_ylabel('Day', fontsize=13)
-	# ax.set_ylabel('Sequence number')
+
+
+	#Choose one out of two to print time to the corresponding coordinate
+	# bars = ax.bar(Xx, times, width=w, color=colors, alpha = 0.7)
+	# bars = ax.bar(Xy, times, width=w,  color=colors, alpha = 0.7)
+	# ax.set_ylabel('Time', fontsize=13)
+
+
+	#Choose one out of two to print time to the corresponding coordinate
+	# bars = ax.bar(Xx, idx, width=w, color=colors, alpha = 0.7)
+	# bars = ax.bar(Xy, idx, width=w, color=colors, alpha = 0.7)
+	# ax.set_ylabel('Index', fontsize=13)
 
 	plt.legend(bars, names,loc ='center left', bbox_to_anchor=(1, 0.5), fontsize='13')
 	ax.tick_params(labelsize=12)
@@ -200,15 +201,12 @@ def onebar(X, bactName, dt, idx):
 
 
 
-
-def scatterbar(X, bactName, datetimes):
-
-	# Create a custom set of markers with custom colours to reproduce results
-	# of previous research and compare after dimensionality reduction
-	colors = ['purple', 'b', 'aqua', 'lightseagreen', 'green', 'lightgreen',\
-	 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b', 'g', 'lightgreen',\
-	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
-	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
+"""
+Creates a 3D barplot by representing in form of 
+a bar a day of the time/day in zaxis while the samples are scattered in two-dimensional
+space by two first coordinates.
+"""
+def scatterbar(X, bactName, datetimes, colors):
 
 	fig = plt.figure()
 
@@ -216,6 +214,7 @@ def scatterbar(X, bactName, datetimes):
 	ax.set_title(bactName)
 	points, names, date_object, times, days = [], [], [], [], []
 
+	# Get time objects for later use
 	for name_arr in datetimes.tolist():
 		date_object.append(datetime.strptime(name_arr[0], '%m/%d/%Y %H:%M'))
 		names.append(name_arr[0])
@@ -224,23 +223,29 @@ def scatterbar(X, bactName, datetimes):
 		times.append(int(i.hour))
 		days.append(int(i.day)-7)
 
+	# Get diffusion coordinates
 	Xx = X[:,0].tolist()
 	Xy = X[:,1].tolist()
-	w = (max(Xx)-min(Xx))/10
 
+	# Set width of bar according to the min-max values of mapping
+	# in the corresponding a coordinate. Choose coordinate according to preference
+	w = (max(Xx)-min(Xx))/10
 	ax.bar(Xx, times, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
 	ax.set_zlabel('Time')
-
 
 	ax.set_xlabel('Diffusion Coordinate 1')
 	ax.set_ylabel('Diffusion coordinate 2')
 
+	# Uncomment to make bar length show the day
 	# ax.bar(Xx, days, zs=Xy, zdir='y', width=w, color=colors, alpha = 0.7)
 	# ax.set_zlabel('Day')
-	# ax.set_zlabel('Sequence number')
 	
 	plt.show()
 
+
+"""
+Alternative manifold learning techniques
+"""
 
 def lle(data):
 	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=10, n_components=2)

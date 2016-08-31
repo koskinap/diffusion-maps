@@ -1,8 +1,9 @@
-# Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
-# Napoleon Koskinas at University of Southampton, MSc Data Science course
+"""Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
+Napoleon Koskinas at University of Southampton, MSc Data Science course
 
-# Script 6: Visulisation-scatterplot of timepoints in 2D space, 
-# using a selected dimensionality reduction technique
+Script 6: Visulisation-scatterplot of timepoints in 2D space, 
+using a selected dimensionality reduction technique.
+Script used to find eigenvalues"""
 
 import openpyxl
 
@@ -12,8 +13,6 @@ import pandas as pd
 from math import sqrt
 
 from sklearn import manifold
-from sklearn.decomposition import PCA
-from sklearn.decomposition import KernelPCA
 from sklearn.metrics.pairwise import pairwise_distances
 
 import matplotlib
@@ -41,7 +40,7 @@ def main():
 	xlData = pd.ExcelFile(datasource)
 	# sheetNames = xlData.sheet_names
 
-	# sheetNames = ['Prochlorococcus', 'Roseobacter', 'SAR324']
+	# sheetNames = ['Prochlorococcus', 'Roseobacter', 'SAR11', 'SAR86', 'SAR116', 'SAR324']
 	sheetNames = ['SAR11']
 
 	dtExcel = pd.ExcelFile(dtsource)
@@ -56,13 +55,14 @@ def main():
 
 		# Perform dimensionality reduction, choose technique
 
-		slist =	np.arange(1, 30, 0.1)
-		# for s in slist:
-		# 	print('s='+str(s))
-		# 	drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s,\
-		# 	 n_components = 2, steps = 1, alpha = 0.5)
+		slist =	np.arange(0.01, 50, 0.05)
+		for s in slist:
+			print('s='+str(s))
+			drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s,\
+			 n_components = 2, steps = 1, alpha = 0.5)
 
-		s=3.7
+		# Set sigma
+		# s=3
 		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s,\
 			 n_components = 2, steps = 1, alpha = 0.5)
 
@@ -88,8 +88,7 @@ def  scatterplot(X, bactName, datetimes):
 	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
 	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
 
-	# fig = plt.figure()
-	# fig.set_title(bactName)
+
 	points = []
 	names = []
 
@@ -108,6 +107,11 @@ def  scatterplot(X, bactName, datetimes):
 	plt.show()
 
 
+
+"""
+Alternative manifold learning techniques
+
+"""
 def lle(data):
 	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=3, n_components=2)
 	return X_r

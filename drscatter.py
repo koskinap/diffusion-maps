@@ -29,9 +29,9 @@ matplotlib.rcParams['legend.scatterpoints'] = 1
 # datasource = './data/normalised/rawData.xlsx'
 # datasource = './data/normalised/sqrtData.xlsx'
 # datasource = './data/normalised/NormalisationData.xlsx'
-# datasource = './data/normalised/NormalisationByRowData.xlsx'
+datasource = './data/normalised/NormalisationByRowData.xlsx'
 # datasource = './data/normalised/MinMaxScalerData.xlsx'
-datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
+# datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
 
 
 dtsource = './data/datetimes.xlsx'
@@ -41,17 +41,12 @@ def main():
 	xlData = pd.ExcelFile(datasource)
 	sheetNames = xlData.sheet_names
 
-	# sheetNames = ['SAR324']
-
 	dtExcel = pd.ExcelFile(dtsource)
 
 	fig = plt.figure()
-	fig.suptitle('LLE for 5 Nearest Neighbours', fontsize=18)
 	no = 321
-	# no = 311
 	# e = [0.3, 0.3, 0.15, 0.2, 0.15, 0.23]
 	# e = [4, 3.7, 3.6, 3.5, 3.6, 4.8]
-
 
 	n =0
 	for bactName in sheetNames:
@@ -62,28 +57,28 @@ def main():
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
 
 		# Perform dimensionality reduction, choose technique
+
 		# drX = mds(X)
 		# drX = laplacian_embedding(X)
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
-		drX = lle(X)
+		# drX = lle(X)
 		
 
-		# distanceMatrix = pairwise_distances(X, metric = 'euclidean')
-		# d = distanceMatrix.flatten()
-		# s = np.std(d)
-		# print np.std(d)
 
-		# slist =np.arange(0.01, 50, 0.01)
-		# for s in slist:
-		# 	print('s='+str(s))
-		# 	drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s,\
-		# 	 n_components = 2, steps = 1, alpha = 0.5)
+		# Diffusion maps framework
+		# STD of distance matrix approach
+		distanceMatrix = pairwise_distances(X, metric = 'euclidean')
+		d = distanceMatrix.flatten()
+		# s = np.std(d)
+
+		#MEDIAN approach
+		# s = sqrt(np.median(d)/(2*np.log(2)))
 
 
 		# s=e[n]
-		# drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s,\
-		# 	 n_components = 2, steps =5, alpha = 0.5)
+		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s ,\
+			 n_components = 2, steps =1, alpha = 0.5)
 
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
@@ -100,7 +95,7 @@ def main():
 def  scatterplot(X, bactName, no, fig, datetimes):
 
 	# Create a custom set of markers with custom colours to reproduce results
-	 # of previous research and compare after dimensionality reduction
+	# of previous research and compare after dimensionality reduction
 	markers = ['d', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', \
 	'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', '^', '^', '^', '^', '^', '^', \
 	'^', '^', '^', '^', '+']
@@ -112,8 +107,7 @@ def  scatterplot(X, bactName, no, fig, datetimes):
 
 	ax = fig.add_subplot(no)
 	ax.set_title(bactName)
-	points = []
-	names = []
+	points, names = [], []
 
 	for name_arr in datetimes.tolist():
 		names.append(name_arr[0])
@@ -124,11 +118,11 @@ def  scatterplot(X, bactName, no, fig, datetimes):
 	fig.legend(points, names, 'lower center', ncol=5, fontsize=13)
 	ax.tick_params(labelsize=12)
 
-	# plt.xlabel('Diffusion coordinate 1', fontsize=14)
-	# plt.ylabel('Diffusion coordinate 2', fontsize=14)
+	plt.xlabel('Diffusion coordinate 1', fontsize=14)
+	plt.ylabel('Diffusion coordinate 2', fontsize=14)
 
-	plt.xlabel('Coordinate 1', fontsize=14)
-	plt.ylabel('Coordinate 2', fontsize=14)
+	# plt.xlabel('Coordinate 1', fontsize=14)
+	# plt.ylabel('Coordinate 2', fontsize=14)
 
 	return fig
 
