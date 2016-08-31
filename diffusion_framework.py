@@ -1,6 +1,7 @@
 # Diffusion Maps Framework implementation as part of MSc Data Science Project of student 
 # Napoleon Koskinas at University of Southampton, MSc Data Science course
 
+# Author: Napoleon Koskinas
 # Script 0: Implement diffusion framework, returns diffusion mappings
 
 from __future__ import division
@@ -42,8 +43,6 @@ def main(X, kernel = 'gaussian', n_components=2, sigma = 1, steps = 1, alpha = 0
 		for err in ErrMessages:
 			print err
 		exit()
-		return None
-
 
 	kernelMatrix = kernel_matrix(X, sigma, kernel)
 
@@ -78,7 +77,7 @@ def kernel_matrix(X, sigma, kernel):
 	K = np.zeros((N, N))
 
 	if kernel == 'gaussian':
-		gamma = 1/(2*sigma**2)
+		gamma = 1/(2*(sigma**2))
 		K = rbf_kernel(X, gamma = gamma)
 	elif kernel == 'laplacian':
 		gamma = 1/sigma

@@ -12,6 +12,7 @@ from math import sqrt
 
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.decomposition import PCA
 
 from datetime import datetime
 
@@ -26,11 +27,9 @@ matplotlib.style.use('ggplot')
 # Choose set of normalised data
 # datasource = './data/normalised/sqrtData.xlsx'
 # datasource = './data/normalised/NormalisationData.xlsx'
-# datasource = './data/normalised/CustomNormalisationData.xlsx'
-# datasource = './data/normalised/StandardisationData.xlsx'
+datasource = './data/normalised/NormalisationByRowData.xlsx'
 # datasource = './data/normalised/MinMaxScalerData.xlsx'
-datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
-# datasource = './data/normalised/rawData.xlsx'
+# datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
 # datasource = './data/pcaData.xlsx'
 
 dtsource = './data/datetimes.xlsx'
@@ -49,16 +48,22 @@ def main():
 		dtMatrix = pd.DataFrame(dtDf).as_matrix()
 
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
-		print 2*np.std(X)
-		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = 2*np.std(X), \
-		 n_components = 2, steps = 1, alpha = 0.5)
+		distanceMatrix = pairwise_distances(X, metric = 'euclidean')
+		d = distanceMatrix.flatten()
+		s= np.std(d)
+
+		dX = diffusion_framework(X, kernel = 'gaussian' , sigma = s, \
+		 n_components = 5, steps = 1, alpha = 0.5)
 		
+		pca = PCA(n_components = 2, whiten = True)
+		drX = pca.fit_transform(dX)
+
 		# drX = pd.DataFrame(worksheet).as_matrix()
 
 		N = drX.shape[0]
 		V = np.zeros((N-2, drX.shape[1]))
+		
 		idx = [i+1 for i in range(N-2)]
-
 
 		times = []
 		for time_arr in dtMatrix.tolist():
@@ -77,11 +82,10 @@ def main():
 			# V[prev,:] = (drX[next,:] - drX[prev,:])/2
 			V[prev,:] = (drX[next,:] - drX[prev,:])/dt[prev]
 
-		plt.plot(V[:,0], drX[1:29,0])
+		plt.plot(V[:,1], drX[1:29,1])
 		plt.show()
 
-
-		break
+		# break
 
 
 if __name__ == '__main__':

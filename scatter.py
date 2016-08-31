@@ -28,10 +28,10 @@ matplotlib.rcParams['legend.scatterpoints'] = 1
 # Choose set of normalised data
 # datasource = './data/normalised/rawData.xlsx'
 # datasource = './data/normalised/sqrtData.xlsx'
-# datasource = './data/normalised/NormalisationData.xlsx'
+datasource = './data/normalised/NormalisationData.xlsx'
 # datasource = './data/normalised/NormalisationByRowData.xlsx'
 # datasource = './data/normalised/MinMaxScalerData.xlsx'
-datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
+# datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
 
 
 dtsource = './data/datetimes.xlsx'
@@ -39,21 +39,14 @@ dtsource = './data/datetimes.xlsx'
 def main():
 
 	xlData = pd.ExcelFile(datasource)
-	sheetNames = xlData.sheet_names
+	# sheetNames = xlData.sheet_names
 
-	# sheetNames = ['SAR324']
+	# sheetNames = ['Prochlorococcus', 'Roseobacter', 'SAR324']
+	sheetNames = ['SAR11']
 
 	dtExcel = pd.ExcelFile(dtsource)
 
-	fig = plt.figure()
-	fig.suptitle('LLE for 5 Nearest Neighbours', fontsize=18)
-	no = 321
-	# no = 311
-	# e = [0.3, 0.3, 0.15, 0.2, 0.15, 0.23]
-	# e = [4, 3.7, 3.6, 3.5, 3.6, 4.8]
 
-
-	n =0
 	for bactName in sheetNames:
 		worksheet = xlData.parse(bactName)
 		print('\nComputing embedding for:  ' + bactName)
@@ -62,42 +55,27 @@ def main():
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
 
 		# Perform dimensionality reduction, choose technique
-		# drX = mds(X)
-		# drX = laplacian_embedding(X)
-		# drX = tsneVis(X) # congested results
-		# drX = isomap(X)
-		drX = lle(X)
-		
 
-		# distanceMatrix = pairwise_distances(X, metric = 'euclidean')
-		# d = distanceMatrix.flatten()
-		# s = np.std(d)
-		# print np.std(d)
-
-		# slist =np.arange(0.01, 50, 0.01)
+		slist =	np.arange(1, 30, 0.1)
 		# for s in slist:
 		# 	print('s='+str(s))
 		# 	drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s,\
 		# 	 n_components = 2, steps = 1, alpha = 0.5)
 
-
-		# s=e[n]
-		# drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s,\
-		# 	 n_components = 2, steps =5, alpha = 0.5)
+		s=3.7
+		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s,\
+			 n_components = 2, steps = 1, alpha = 0.5)
 
 		# Read time-date from file
 		dtDf = dtExcel.parse(bactName)
 		dt = pd.DataFrame(dtDf).as_matrix()
 
-		scatterplot(drX, bactName, no, fig, dt)
+		scatterplot(drX, bactName, dt)
 
-		n+=1
-		no+=1
-		# break
+		break
 
-	plt.show()
 
-def  scatterplot(X, bactName, no, fig, datetimes):
+def  scatterplot(X, bactName, datetimes):
 
 	# Create a custom set of markers with custom colours to reproduce results
 	 # of previous research and compare after dimensionality reduction
@@ -110,8 +88,8 @@ def  scatterplot(X, bactName, no, fig, datetimes):
 	  'y', 'orange', 'r', 'magenta', 'purple', 'b', 'aqua', 'lightseagreen', 'g', \
 	  'lightgreen', 'orangered', 'magenta', 'orchid', 'purple', 'darkblue', 'b']
 
-	ax = fig.add_subplot(no)
-	ax.set_title(bactName)
+	# fig = plt.figure()
+	# fig.set_title(bactName)
 	points = []
 	names = []
 
@@ -119,22 +97,19 @@ def  scatterplot(X, bactName, no, fig, datetimes):
 		names.append(name_arr[0])
 
 	for m, c, i, j in zip(markers, colors, X[:,0], X[:,1]):
-		points.append(ax.scatter(i, j, s = 50, marker=m, c=c))
+		points.append(plt.scatter(i, j, s = 50, marker=m, c=c))
 
-	fig.legend(points, names, 'lower center', ncol=5, fontsize=13)
-	ax.tick_params(labelsize=12)
+	# plt.legend(points, names, 'lower center', ncol=5, fontsize=13)
+	plt.tick_params(labelsize=12)
 
-	# plt.xlabel('Diffusion coordinate 1', fontsize=14)
-	# plt.ylabel('Diffusion coordinate 2', fontsize=14)
+	plt.xlabel('Diffusion coordinate 1', fontsize=14)
+	plt.ylabel('Diffusion coordinate 2', fontsize=14)
 
-	plt.xlabel('Coordinate 1', fontsize=14)
-	plt.ylabel('Coordinate 2', fontsize=14)
-
-	return fig
+	plt.show()
 
 
 def lle(data):
-	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=20, n_components=2)
+	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=3, n_components=2)
 	return X_r
 
 def laplacian_embedding(data):

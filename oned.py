@@ -25,6 +25,8 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 from mpl_toolkits.mplot3d import Axes3D
 
+from scipy.stats import signaltonoise
+
 from diffusion_framework import main as diffusion_framework
 
 from itertools import cycle
@@ -36,7 +38,7 @@ matplotlib.rcParams['legend.scatterpoints'] = 1
 # datasource = './data/normalised/sqrtData.xlsx'
 datasource = './data/normalised/NormalisationData.xlsx'
 # datasource = './data/normalised/NormalisationByRowData.xlsx'
-# datasource = './data/no?rmalised/MinMaxScalerData.xlsx'
+# datasource = './data/normalised/MinMaxScalerData.xlsx'
 # datasource = './data/normalised/MinMaxScalerFeatureData.xlsx'
 
 
@@ -62,29 +64,30 @@ def main():
 		# Keep only the actual timeseries data, last 30 columns
 		X = pd.DataFrame(worksheet.ix[:,:29]).as_matrix().transpose()
 
+		# Compute distance matrix to extract information
 		distanceMatrix = pairwise_distances(X, metric = 'euclidean')
 		d = distanceMatrix.flatten()
 		# med = np.median(d)
 		# s = sqrt(med**2/1.4)
 
-		# s = 2*np.std(d)
+		s = np.std(d)
 
 		# Perform dimensionality reduction, choose technique
 		# drX = mds(X)
 		# drX = laplacian_embedding(X)
 		# drX = tsneVis(X) # congested results
 		# drX = isomap(X)
-		drX = lle(X)
+		# drX = lle(X)
 
-		# drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s, \
-		#  n_components = 2, steps = 1, alpha = 0.5)
+		drX = diffusion_framework(X, kernel = 'gaussian' , sigma = s, \
+		 n_components = 2, steps = 1, alpha = 0.5)
 
 		#Choose visualisation
 		# oned(drX,bactName)
 		# scatterbar(drX, bactName, dt)
 		# onebar(drX, bactName, dt, idx)
 		idxbar(drX, bactName, dt, idx)
-		# break
+		break
 
 
 def idxbar(X, bactName, dt, idx):
@@ -99,7 +102,7 @@ def idxbar(X, bactName, dt, idx):
 	fig = plt.figure()
 	ax = fig.add_subplot(111)
 
-	ax.set_title('Diffusion maps 2nd coordinate for {}'.format(bactName), fontsize=20)
+
 
 
 	for name_arr in dt.tolist():
@@ -120,10 +123,14 @@ def idxbar(X, bactName, dt, idx):
 	w = 0.50
 	bars = ax.bar(idx, Xx, width=w, color=colors, alpha = 0.8)
 	ax.set_ylabel('Diffusion Coordinate 1', fontsize=15)
+	ax.set_title('Diffusion maps 1st coordinate for {}'.format(bactName), fontsize=20)
+
 
 	# w = 0.50
 	# bars = ax.bar(idx, Xy, width=w, color=colors, alpha = 0.8)
 	# ax.set_ylabel('Diffusion Coordinate 2', fontsize=15)
+	# ax.set_title('Diffusion maps 2nd coordinate for {}'.format(bactName), fontsize=20)
+
 
 	ax.set_xlabel('Time point', fontsize=15)
 	ax.tick_params(labelsize=14)
@@ -236,7 +243,7 @@ def scatterbar(X, bactName, datetimes):
 
 
 def lle(data):
-	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=5, n_components=2)
+	X_r, err = manifold.locally_linear_embedding(data, n_neighbors=10, n_components=2)
 	return X_r
 
 def laplacian_embedding(data):
@@ -253,7 +260,7 @@ def tsneVis(data):
 	return model.fit_transform(data)
 
 def isomap(data):
-	isom = manifold.Isomap(n_components = 2, n_neighbors=5)
+	isom = manifold.Isomap(n_components = 2, n_neighbors=10)
 	return isom.fit_transform(data)
 
 if __name__ == '__main__':

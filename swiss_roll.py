@@ -11,6 +11,7 @@ from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
 
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 from mpl_toolkits.mplot3d import Axes3D
@@ -24,20 +25,25 @@ def main():
 	#For testing purposes of the framework, a swiss roll dataset is generated.
 	X, colors = make_swiss_roll(n_samples = 2000, noise = 0.1, random_state = None)
 
-	Xlle = lle(X)
-	Xlapl = laplacian_embedding(X)
-	Xisom = isomap(X)
-	XhesEig = hessian_eigen(X)
-
 	Xtsne = tsneVis(X)
 	Xpca = pca_function(X)
 	Xkpca = kernel_pca(X)
 	Xmds = mds(X)
 
+	Xlle = lle(X)
+	Xlapl = laplacian_embedding(X)
+	Xisom = isomap(X)
+	XhesEig = hessian_eigen(X)
+
+	#Set colorbar
+	rng = np.arange(min(colors), max(colors))
+	clrbar = cm.ScalarMappable(cmap=plt.cm.Spectral)
+	clrbar.set_array(rng)
+
 	#Call Visualisation functions
-	visualisation(X, colors)
-	visualisation2(Xpca, Xkpca, Xmds, Xtsne, colors)
-	visualisation3(Xlle, Xlapl, Xisom, XhesEig, colors)
+	visualisation(X, colors, clrbar)
+	visualisation2(Xpca, Xkpca, Xmds, Xtsne, colors, clrbar)
+	visualisation3(Xlle, Xlapl, Xisom, XhesEig, colors, clrbar)
 
 def lle(data):
 	Xemb, err = manifold.locally_linear_embedding(data, n_neighbors=12, n_components=2)
@@ -73,89 +79,94 @@ def mds(data):
 	return mdsm.fit_transform(data)
 
 
-def visualisation2(Xpca, Xkpca, Xmds, Xtsne, color):
+def visualisation2(Xpca, Xkpca, Xmds, Xtsne, color, clrbar):
 	fig = plt.figure()
 
 	ax = fig.add_subplot(221)
 	ax.scatter(Xpca[:, 0], Xpca[:, 1], c=color, cmap=plt.cm.Spectral)
-	ax.set_xlabel('Principal Component 1')
-	ax.set_ylabel('Principal Component 2')
-	plt.title('a. Projected data using PCA')
+	ax.set_xlabel('Principal Component 1',fontsize = 16)
+	ax.set_ylabel('Principal Component 2',fontsize = 16)
+	plt.title('a. Projected data using PCA',fontsize = 18)
 
 	ax = fig.add_subplot(222)
 	ax.scatter(Xkpca[:, 0], Xkpca[:, 1], c=color, cmap=plt.cm.Spectral)
-	ax.set_xlabel('Coordinate 1')
-	ax.set_ylabel('Coordinate 2')
-	plt.title('b. Projected data using kernel PCA')
+	ax.set_xlabel('Coordinate 1',fontsize = 16)
+	ax.set_ylabel('Coordinate 2',fontsize = 16)
+	plt.title('b. Projected data using kernel PCA',fontsize = 18)
 
 	ax = fig.add_subplot(223)
 	ax.scatter(Xmds[:, 0], Xmds[:, 1], c=color, cmap=plt.cm.Spectral)
-	ax.set_xlabel('Coordinate 1')
-	ax.set_ylabel('Coordinate 2')
-	plt.title('c. Visualised using MDS')
+	ax.set_xlabel('Coordinate 1',fontsize = 16)
+	ax.set_ylabel('Coordinate 2',fontsize = 16)
+	plt.title('c. Visualised using MDS',fontsize = 18)
 
 	ax = fig.add_subplot(224)
 	ax.scatter(Xtsne[:, 0], Xtsne[:, 1], c=color, cmap=plt.cm.Spectral)
-	ax.set_xlabel('Coordinate 1')
-	ax.set_ylabel('Coordinate 2')
-	plt.title('d. Visualised using t-SNE')
+	ax.set_xlabel('Coordinate 1',fontsize = 16)
+	ax.set_ylabel('Coordinate 2',fontsize = 16)
+	plt.title('d. Visualised using t-SNE',fontsize = 18)
 
-	plt.axis('tight')
-	# plt.savefig("./images/swiss_lin.eps")
+
+	fig.subplots_adjust(right=0.85)
+	cax = fig.add_axes([0.9, 0.1, 0.03, 0.8])
+	fig.colorbar(clrbar, cax=cax)
 
 	plt.show()
 
 
-def visualisation3(Xlle, Xlapl, Xisom, XhesEig,  color):
+def visualisation3(Xlle, Xlapl, Xisom, XhesEig, color, clrbar):
 	fig = plt.figure()
 
 	ax = fig.add_subplot(221)
 	ax.scatter(Xlle[:, 0], Xlle[:, 1], c=color, cmap=plt.cm.Spectral)
-	ax.set_xlabel('Coordinate 1')
-	ax.set_ylabel('Coordinate 2')
-	plt.title('a. Locally Linear Embeddings')
+	ax.set_xlabel('Coordinate 1',fontsize = 16)
+	ax.set_ylabel('Coordinate 2',fontsize = 16)
+	plt.title('a. Locally Linear Embeddings',fontsize = 18)
 
 	ax = fig.add_subplot(222)
 	ax.scatter(Xlapl[:, 0], Xlapl[:, 1], c=color, cmap=plt.cm.Spectral)
-	ax.set_xlabel('Coordinate 1')
-	ax.set_ylabel('Coordinate 2')	
-	plt.title('b. Laplacian Eigenmaps')
+	ax.set_xlabel('Coordinate 1',fontsize = 16)
+	ax.set_ylabel('Coordinate 2',fontsize = 16)	
+	plt.title('b. Laplacian Eigenmaps',fontsize = 18)
 
 
 	ax = fig.add_subplot(223)
 	ax.scatter(Xisom[:, 0], Xisom[:, 1], c=color, cmap=plt.cm.Spectral)
-	ax.set_xlabel('Coordinate 1')
-	ax.set_ylabel('Coordinate 2')
-	plt.title('c. Isometric Feature Mappings')
+	ax.set_xlabel('Coordinate 1',fontsize = 16)
+	ax.set_ylabel('Coordinate 2',fontsize = 16)
+	plt.title('c. Isometric Feature Mappings',fontsize = 18)
 
 
 	ax = fig.add_subplot(224)
 	ax.scatter(XhesEig[:, 0], XhesEig[:, 1], c=color, cmap=plt.cm.Spectral)
-	ax.set_xlabel('Coordinate 1')
-	ax.set_ylabel('Coordinate 2')
-	plt.title('d. Hessian Eigenmaps')
+	ax.set_xlabel('Coordinate 1',fontsize = 16)
+	ax.set_ylabel('Coordinate 2',fontsize = 16)
+	plt.title('d. Hessian Eigenmaps',fontsize = 18)
 
-	plt.axis('tight')
-	# plt.savefig("./images/swiss_man.eps")
+	fig.subplots_adjust(right=0.85)
+	cax = fig.add_axes([0.9, 0.1, 0.03, 0.8])
+	fig.colorbar(clrbar, cax=cax)
 
 	plt.show()
 	
 
-def visualisation(X, color):
+def visualisation(X, color, clrbar):
 
-	fig = plt.figure()
-	
+	fig = plt.figure(frameon=False)
+
 	try:
 	    ax = fig.add_subplot(111, projection='3d')
 	    ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap=plt.cm.Spectral)
+
 	except:
 	    ax = fig.add_subplot(111)
 	    ax.scatter(X[:, 0],  X[:, 2], c=color, cmap=plt.cm.Spectral)
 
+	plt.colorbar(clrbar)
 	plt.axis('tight')
+	plt.title('Three dimensional Swiss roll for 2000 points')
 
 	# plt.savefig("./images/swiss.eps") # save as png
-
 	plt.show()
 	
 
